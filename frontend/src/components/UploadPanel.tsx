@@ -46,7 +46,12 @@ export function UploadPanel({
         onDragOver={(event) => event.preventDefault()}
         onDrop={handleDrop}
       >
-        <input type="file" accept=".glb,model/gltf-binary" onChange={handleInput} />
+        <input
+          type="file"
+          accept=".glb,model/gltf-binary"
+          aria-label="GLB file"
+          onChange={handleInput}
+        />
         <span className="drop-zone__action">Select or drop a GLB</span>
         <span className="drop-zone__detail">
           {file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MiB` : "Maximum upload: 25 MiB"}

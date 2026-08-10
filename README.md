@@ -114,6 +114,15 @@ npm.cmd run build
 
 The generated static site is written to `frontend/dist/` and is not committed.
 
+Run the focused frontend interaction tests with:
+
+```powershell
+cd frontend
+npm.cmd test
+```
+
+Vitest and React Testing Library cover the browser-facing contract: submitting a GLB for analysis, presenting API failures, and exposing comparison and download controls after optimization. The Python suite remains responsible for the analyzer, rules, subprocess orchestration, and HTTP API behavior.
+
 ## Analyzer CLI
 
 ```powershell
