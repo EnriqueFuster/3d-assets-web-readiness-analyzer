@@ -57,15 +57,45 @@ Deferred ideas live in [future.md](future.md).
 
 ## Current status
 
-**Day 0 — baseline and scope.** The repository structure, sample policy, baseline schema, and initial architecture decisions are being established. No application code exists yet by design.
+**Slice 2 complete — profile-aware analyzer.** The CLI validates and inspects a GLB, maps the results into typed models, and evaluates explainable readiness rules for mobile or desktop targets.
 
-The first coding slice will expose one function:
+The core pipeline exposes:
 
 ```python
-report = analyze_glb(path)
+report = analyze_glb(path, output_path, profile_key="mobile")
 ```
 
-It will return a structured, serializable report for valid input and explicit errors for missing, unsupported, or invalid files. Scoring, optimization, API, and UI are deliberately excluded from that slice.
+It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. Optimization, API, and UI remain later slices.
+
+## Analyzer CLI
+
+```powershell
+python .\scripts\analyze_glb.py input.glb report.json mobile
+python .\scripts\analyze_glb.py input.glb report.json desktop
+```
+
+The optional profile defaults to `mobile`. Current profile budgets are deliberately contextual:
+
+| Profile | GLB bytes | Triangles | Max texture dimension | Estimated texture GPU memory |
+| --- | ---: | ---: | ---: | ---: |
+| `mobile` | 3,000,000 | 30,000 | 1,024 px | 64 MiB |
+| `desktop` | 5,000,000 | 100,000 | 2,048 px | 128 MiB |
+
+File-size, triangle, and texture-resolution budgets are informed by Khronos publishing guidance and its Web AR audit-profile example. GPU-memory budgets are project heuristics, not universal standards. Static inspection does not replace testing on representative browsers and devices.
+
+## Optimization and comparison
+
+```powershell
+python .\scripts\optimize_glb.py input.glb optimized.glb comparison.json --profile mobile
+```
+
+The pipeline analyzes the source, optimizes a separate copy, revalidates it, and records before/after metrics. A result with new validation errors is rejected. Otherwise it remains `pending_visual_qa` until a visual review is recorded:
+
+```powershell
+python .\scripts\review_optimization.py comparison.json --passed --notes "No visible regressions."
+```
+
+The BoomBox reference case reduced transfer size from 10,614,184 to 8,521,416 bytes (19.72%) and triangles from 6,036 to 5,706 (5.47%), with no new validation errors. Decoded texture-memory cost remained unchanged, demonstrating that transfer compression and runtime GPU memory are different concerns. Deterministic 800x800 renders found no visible regression; the comparison is recorded as `accepted`.
 
 ## Planned releases
 
@@ -79,7 +109,9 @@ It will return a structured, serializable report for valid input and explicit er
 ```text
 docs/       decisions, baseline, and development log
 samples/    licensed GLB fixtures and provenance
-content/    screenshots and recordings captured during development
+src/        typed domain models, rules, comparison, and QA policy
+scripts/    command-line orchestration
+tests/      unit and orchestration tests
 ```
 
 The backend and frontend directories will be introduced only when their first vertical slices begin.
@@ -93,4 +125,3 @@ Sample files are sourced from the Khronos glTF Sample Assets repository. See [sa
 Python will own the domain model, orchestration, heuristics, comparisons, and future FastAPI layer. Khronos glTF Validator and glTF Transform will provide specialized validation, inspection, and optimization instead of being reimplemented.
 
 Exact tool versions will be recorded with generated reports. JavaScript tooling will be installed locally and invoked with `npm.cmd`/`npx.cmd` on Windows; no global installation or PowerShell policy change is required.
-

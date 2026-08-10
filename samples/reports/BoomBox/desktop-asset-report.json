@@ -1,0 +1,89 @@
+{
+  "source": "samples\\original\\BoomBox\\BoomBox.glb",
+  "file_size_bytes": 10614184,
+  "validation": {
+    "validator_version": "2.0.0-dev.3.10",
+    "errors": 0,
+    "warnings": 0,
+    "infos": 0,
+    "hints": 5,
+    "messages": [
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/NORMAL"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/POSITION"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/indices"
+      }
+    ]
+  },
+  "inspection": {
+    "geometry": {
+      "meshes": 1,
+      "mesh_primitives": 1,
+      "render_primitives": 6036,
+      "triangles": 6036,
+      "upload_vertices": 3575,
+      "render_vertices": 18108,
+      "estimated_gpu_bytes": 207816
+    },
+    "materials": {
+      "count": 1
+    },
+    "textures": {
+      "count": 4,
+      "embedded_bytes": 10404597,
+      "estimated_gpu_bytes": 89478480,
+      "max_width": 2048,
+      "max_height": 2048
+    },
+    "animations": 0,
+    "extensions_used": [],
+    "extensions_required": []
+  },
+  "profile": {
+    "key": "desktop",
+    "name": "Desktop Web Product Viewer",
+    "source_note": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
+    "max_file_size_bytes": 5000000,
+    "max_triangles": 100000,
+    "max_texture_resolution": 2048,
+    "max_texture_gpu_bytes": 134217728
+  },
+  "findings": [
+    {
+      "code": "FILE_SIZE_EXCEEDED",
+      "severity": "warning",
+      "metric": "file_size_bytes",
+      "message": "The GLB exceeds the file-size budget for profile 'Desktop Web Product Viewer'.",
+      "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
+      "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
+      "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
+      "measured_value": 10614184,
+      "threshold": 5000000
+    }
+  ]
+}

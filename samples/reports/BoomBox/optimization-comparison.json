@@ -1,0 +1,245 @@
+{
+  "before": {
+    "source": "samples\\original\\BoomBox\\BoomBox.glb",
+    "file_size_bytes": 10614184,
+    "validation": {
+      "validator_version": "2.0.0-dev.3.10",
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "hints": 5,
+      "messages": [
+        {
+          "code": "BUFFER_VIEW_TARGET_MISSING",
+          "message": "bufferView.target should be set for vertex or index data.",
+          "severity": 3,
+          "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+        },
+        {
+          "code": "BUFFER_VIEW_TARGET_MISSING",
+          "message": "bufferView.target should be set for vertex or index data.",
+          "severity": 3,
+          "pointer": "/meshes/0/primitives/0/attributes/NORMAL"
+        },
+        {
+          "code": "BUFFER_VIEW_TARGET_MISSING",
+          "message": "bufferView.target should be set for vertex or index data.",
+          "severity": 3,
+          "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+        },
+        {
+          "code": "BUFFER_VIEW_TARGET_MISSING",
+          "message": "bufferView.target should be set for vertex or index data.",
+          "severity": 3,
+          "pointer": "/meshes/0/primitives/0/attributes/POSITION"
+        },
+        {
+          "code": "BUFFER_VIEW_TARGET_MISSING",
+          "message": "bufferView.target should be set for vertex or index data.",
+          "severity": 3,
+          "pointer": "/meshes/0/primitives/0/indices"
+        }
+      ]
+    },
+    "inspection": {
+      "geometry": {
+        "meshes": 1,
+        "mesh_primitives": 1,
+        "render_primitives": 6036,
+        "triangles": 6036,
+        "upload_vertices": 3575,
+        "render_vertices": 18108,
+        "estimated_gpu_bytes": 207816
+      },
+      "materials": {
+        "count": 1
+      },
+      "textures": {
+        "count": 4,
+        "embedded_bytes": 10404597,
+        "estimated_gpu_bytes": 89478480,
+        "max_width": 2048,
+        "max_height": 2048
+      },
+      "animations": 0,
+      "extensions_used": [],
+      "extensions_required": []
+    },
+    "profile": {
+      "key": "mobile",
+      "name": "Mobile Web / AR — strict",
+      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+      "max_file_size_bytes": 3000000,
+      "max_triangles": 30000,
+      "max_texture_resolution": 1024,
+      "max_texture_gpu_bytes": 67108864
+    },
+    "findings": [
+      {
+        "code": "FILE_SIZE_EXCEEDED",
+        "severity": "warning",
+        "metric": "file_size_bytes",
+        "message": "The GLB exceeds the file-size budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
+        "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 10614184,
+        "threshold": 3000000
+      },
+      {
+        "code": "TEXTURE_RESOLUTION_EXCEEDED",
+        "severity": "warning",
+        "metric": "texture_max_dimension_px",
+        "message": "At least one texture exceeds the resolution budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "Large texture dimensions increase decoded GPU memory even when the transferred image is compressed.",
+        "recommendation": "Resize textures by material role and verify fine details visually.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 2048,
+        "threshold": 1024
+      },
+      {
+        "code": "TEXTURE_MEMORY_EXCEEDED",
+        "severity": "warning",
+        "metric": "estimated_texture_gpu_bytes",
+        "message": "Estimated texture GPU memory exceeds the heuristic budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "High decoded texture memory can cause memory pressure, stuttering, or eviction on target devices.",
+        "recommendation": "Consider KTX2 GPU compression or lower resolutions, then test on representative hardware.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 89478480,
+        "threshold": 67108864
+      }
+    ]
+  },
+  "after": {
+    "source": "samples\\derived\\BoomBox\\BoomBox-optimized.glb",
+    "file_size_bytes": 8521416,
+    "validation": {
+      "validator_version": "2.0.0-dev.3.10",
+      "errors": 0,
+      "warnings": 0,
+      "infos": 1,
+      "hints": 0,
+      "messages": [
+        {
+          "code": "UNSUPPORTED_EXTENSION",
+          "message": "Cannot validate an extension as it is not supported by the validator: 'EXT_meshopt_compression'.",
+          "severity": 2,
+          "pointer": "/extensionsUsed/0"
+        }
+      ]
+    },
+    "inspection": {
+      "geometry": {
+        "meshes": 1,
+        "mesh_primitives": 1,
+        "render_primitives": 5706,
+        "triangles": 5706,
+        "upload_vertices": 3409,
+        "render_vertices": 17118,
+        "estimated_gpu_bytes": 92189
+      },
+      "materials": {
+        "count": 1
+      },
+      "textures": {
+        "count": 4,
+        "embedded_bytes": 8471626,
+        "estimated_gpu_bytes": 89478480,
+        "max_width": 2048,
+        "max_height": 2048
+      },
+      "animations": 0,
+      "extensions_used": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "extensions_required": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ]
+    },
+    "profile": {
+      "key": "mobile",
+      "name": "Mobile Web / AR — strict",
+      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+      "max_file_size_bytes": 3000000,
+      "max_triangles": 30000,
+      "max_texture_resolution": 1024,
+      "max_texture_gpu_bytes": 67108864
+    },
+    "findings": [
+      {
+        "code": "FILE_SIZE_EXCEEDED",
+        "severity": "warning",
+        "metric": "file_size_bytes",
+        "message": "The GLB exceeds the file-size budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
+        "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 8521416,
+        "threshold": 3000000
+      },
+      {
+        "code": "TEXTURE_RESOLUTION_EXCEEDED",
+        "severity": "warning",
+        "metric": "texture_max_dimension_px",
+        "message": "At least one texture exceeds the resolution budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "Large texture dimensions increase decoded GPU memory even when the transferred image is compressed.",
+        "recommendation": "Resize textures by material role and verify fine details visually.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 2048,
+        "threshold": 1024
+      },
+      {
+        "code": "TEXTURE_MEMORY_EXCEEDED",
+        "severity": "warning",
+        "metric": "estimated_texture_gpu_bytes",
+        "message": "Estimated texture GPU memory exceeds the heuristic budget for profile 'Mobile Web / AR — strict'.",
+        "rationale": "High decoded texture memory can cause memory pressure, stuttering, or eviction on target devices.",
+        "recommendation": "Consider KTX2 GPU compression or lower resolutions, then test on representative hardware.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "measured_value": 89478480,
+        "threshold": 67108864
+      }
+    ]
+  },
+  "file_size": {
+    "before": 10614184,
+    "after": 8521416,
+    "absolute_change": -2092768,
+    "percent_change": -19.716711148026075
+  },
+  "triangles": {
+    "before": 6036,
+    "after": 5706,
+    "absolute_change": -330,
+    "percent_change": -5.467196819085487
+  },
+  "texture_gpu_bytes": {
+    "before": 89478480,
+    "after": 89478480,
+    "absolute_change": 0,
+    "percent_change": 0.0
+  },
+  "render_primitives": {
+    "before": 6036,
+    "after": 5706,
+    "absolute_change": -330,
+    "percent_change": -5.467196819085487
+  },
+  "materials": {
+    "before": 1,
+    "after": 1,
+    "absolute_change": 0,
+    "percent_change": 0.0
+  },
+  "validity_regression": false,
+  "status": "accepted",
+  "rejection_reasons": [],
+  "visual_qa": {
+    "passed": true,
+    "notes": "Deterministic 800x800 renders were compared with identical renderer, camera, lighting, and background. No visible regressions were found in silhouette, materials, labels, speaker grille, controls, handle, or antenna. Mean absolute pixel difference was 0.31/255 per channel; localized differences were limited to rasterization edges.",
+    "reviewer": "manual-local-review",
+    "reviewed_at": "2026-08-10T08:59:33.771010Z"
+  }
+}

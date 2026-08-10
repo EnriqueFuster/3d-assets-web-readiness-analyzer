@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -19,8 +20,19 @@ dist/
 build/
 tmp/
 *.log
+content/
+docs/devlog.md
 
 # Generated 3D derivatives and reports
 samples/derived/*
 !samples/derived/.gitkeep
-
+report.json
+samples/reports/**/*.inspection.json
+samples/reports/**/*.validator.json
+samples/reports/**/raw/*.json
+samples/reports/**/*-report.json
+samples/reports/**/optimization-comparison.before.json
+samples/reports/**/optimization-comparison.after.json
+!samples/reports/BoomBox/mobile-asset-report.json
+!samples/reports/BoomBox/desktop-asset-report.json
+!samples/reports/BoomBox/optimization-comparison.json

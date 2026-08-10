@@ -1,6 +1,6 @@
 # Project roadmap
 
-This file is the execution contract for **3D Web Readiness Analyzer**. The broader career roadmap is intentionally not duplicated here.
+This file is the execution contract for **3D Web Readiness Analyzer**.
 
 ## Product question
 
@@ -24,10 +24,10 @@ Definition of Done:
 - [x] Baseline schema exists.
 - [x] Sample provenance and licensing policy exist.
 - [x] Architecture decisions are recorded.
-- [x] Devlog and content-capture structure exist.
+- [x] Technical documentation structure exists.
 - [x] Three sample GLBs are present with licenses and SHA-256 checksums.
 - [x] Raw Validator and glTF Transform outputs are recorded for each sample.
-- [ ] Initial screenshots or recordings are captured manually.
+- [x] Deterministic visual-QA captures exist for the optimization reference case.
 
 Day 0 stops when these items are complete. It does not include application code.
 
@@ -41,29 +41,32 @@ analyze_glb(path) -> AssetReport
 
 Acceptance criteria:
 
-- Accept an existing `.glb` path.
-- Run the pinned validator and inspection commands.
-- Map outputs into typed domain models.
-- Serialize the report to JSON.
-- Return clear errors for missing, unsupported, and invalid input.
-- Test valid, missing, and invalid fixtures.
+- [x] Accept an existing `.glb` path.
+- [x] Run the pinned validator and inspection commands.
+- [x] Map outputs into typed domain models.
+- [x] Serialize the report to JSON.
+- [x] Return clear errors for missing, unsupported, and invalid input.
+- [x] Test valid, missing, and invalid fixtures.
 
 Out of scope: scoring, recommendations, optimization, API, frontend, and Docker.
 
 ## Slice 2 — profiles and recommendations
 
-- Define the first target profile explicitly.
-- Implement pure, independently tested rules.
-- Include metric, threshold, severity, rationale, and recommendation in every finding.
-- Avoid treating individual thresholds as universal truths.
+- [x] Define explicit mobile and desktop target profiles.
+- [x] Implement pure, independently tested rules.
+- [x] Include metric, threshold, severity, rationale, recommendation, and source in every finding.
+- [x] Test exact threshold boundaries and serialized report output.
+- [x] Avoid treating individual thresholds as universal truths.
+- [x] Capture profile-aware reports for BoomBox as reproducible evidence.
 
 ## Slice 3 — optimization and comparison (v0.2)
 
-- Optimize a copy, never the source asset.
-- Revalidate the result.
-- Compare transfer, geometry, texture, and render-complexity metrics.
-- Reject critical validity regressions.
-- Require manual visual QA and document its limits.
+- [x] Optimize a copy, never the source asset.
+- [x] Revalidate the result.
+- [x] Compare transfer, geometry, texture, and render-complexity metrics.
+- [x] Reject critical validity regressions.
+- [x] Require and record visual QA before acceptance.
+- [x] Preserve a reproducible BoomBox before/after case.
 
 ## Slice 4 — API (v0.3)
 

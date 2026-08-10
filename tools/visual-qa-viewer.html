@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #eceff3;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"/node_modules/three/build/three.module.js"}}
+  </script>
+</head>
+<body>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "/node_modules/three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "/node_modules/three/examples/jsm/libs/meshopt_decoder.module.js";
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  preserveDrawingBuffer: true,
+});
+renderer.setPixelRatio(1);
+renderer.setSize(800, 800);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xeceff3);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445066, 2.25));
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 3);
+keyLight.position.set(4, 6, 5);
+scene.add(keyLight);
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 1000);
+const modelPath = new URLSearchParams(location.search).get("model");
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const gltf = await loader.loadAsync(modelPath);
+scene.add(gltf.scene);
+
+const bounds = new THREE.Box3().setFromObject(gltf.scene);
+const center = bounds.getCenter(new THREE.Vector3());
+const size = bounds.getSize(new THREE.Vector3());
+const maxDimension = Math.max(size.x, size.y, size.z);
+const viewDirection = new THREE.Vector3(1.4, 0.85, 1.4).normalize();
+
+camera.position.copy(center).add(
+  viewDirection.multiplyScalar(maxDimension * 2.4),
+);
+camera.near = maxDimension / 100;
+camera.far = maxDimension * 100;
+camera.lookAt(center);
+camera.updateProjectionMatrix();
+
+renderer.render(scene, camera);
+document.body.dataset.ready = "true";
+</script>
+</body>
+</html>

@@ -36,7 +36,7 @@
 
 **Decision:** Every sample must have a stable upstream URL, license/attribution, role in the test matrix, byte size, and SHA-256 checksum. Derived stress fixtures must document their transformation.
 
-**Reason:** Reproducibility and public portfolio use require provenance, not anonymous binary files.
+**Reason:** Reproducibility and redistribution require provenance, not anonymous binary files.
 
 **Trade-off:** Updating a sample requires intentionally updating the baseline and checksum.
 

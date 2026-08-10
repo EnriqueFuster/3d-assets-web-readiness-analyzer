@@ -1,0 +1,111 @@
+{
+  "source": "samples\\original\\BoomBox\\BoomBox.glb",
+  "file_size_bytes": 10614184,
+  "validation": {
+    "validator_version": "2.0.0-dev.3.10",
+    "errors": 0,
+    "warnings": 0,
+    "infos": 0,
+    "hints": 5,
+    "messages": [
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/NORMAL"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/attributes/POSITION"
+      },
+      {
+        "code": "BUFFER_VIEW_TARGET_MISSING",
+        "message": "bufferView.target should be set for vertex or index data.",
+        "severity": 3,
+        "pointer": "/meshes/0/primitives/0/indices"
+      }
+    ]
+  },
+  "inspection": {
+    "geometry": {
+      "meshes": 1,
+      "mesh_primitives": 1,
+      "render_primitives": 6036,
+      "triangles": 6036,
+      "upload_vertices": 3575,
+      "render_vertices": 18108,
+      "estimated_gpu_bytes": 207816
+    },
+    "materials": {
+      "count": 1
+    },
+    "textures": {
+      "count": 4,
+      "embedded_bytes": 10404597,
+      "estimated_gpu_bytes": 89478480,
+      "max_width": 2048,
+      "max_height": 2048
+    },
+    "animations": 0,
+    "extensions_used": [],
+    "extensions_required": []
+  },
+  "profile": {
+    "key": "mobile",
+    "name": "Mobile Web / AR — strict",
+    "source_note": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+    "max_file_size_bytes": 3000000,
+    "max_triangles": 30000,
+    "max_texture_resolution": 1024,
+    "max_texture_gpu_bytes": 67108864
+  },
+  "findings": [
+    {
+      "code": "FILE_SIZE_EXCEEDED",
+      "severity": "warning",
+      "metric": "file_size_bytes",
+      "message": "The GLB exceeds the file-size budget for profile 'Mobile Web / AR — strict'.",
+      "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
+      "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
+      "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+      "measured_value": 10614184,
+      "threshold": 3000000
+    },
+    {
+      "code": "TEXTURE_RESOLUTION_EXCEEDED",
+      "severity": "warning",
+      "metric": "texture_max_dimension_px",
+      "message": "At least one texture exceeds the resolution budget for profile 'Mobile Web / AR — strict'.",
+      "rationale": "Large texture dimensions increase decoded GPU memory even when the transferred image is compressed.",
+      "recommendation": "Resize textures by material role and verify fine details visually.",
+      "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+      "measured_value": 2048,
+      "threshold": 1024
+    },
+    {
+      "code": "TEXTURE_MEMORY_EXCEEDED",
+      "severity": "warning",
+      "metric": "estimated_texture_gpu_bytes",
+      "message": "Estimated texture GPU memory exceeds the heuristic budget for profile 'Mobile Web / AR — strict'.",
+      "rationale": "High decoded texture memory can cause memory pressure, stuttering, or eviction on target devices.",
+      "recommendation": "Consider KTX2 GPU compression or lower resolutions, then test on representative hardware.",
+      "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+      "measured_value": 89478480,
+      "threshold": 67108864
+    }
+  ]
+}

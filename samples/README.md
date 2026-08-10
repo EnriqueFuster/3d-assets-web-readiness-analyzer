@@ -41,4 +41,4 @@ This directory contains public GLB fixtures used to establish a reproducible tes
 
 ## Why samples are committed
 
-The small curated fixture set makes tests and portfolio results reproducible. If repository size becomes excessive, larger showcase assets will move to a checksum-verified download script while compact fixtures remain in Git.
+The small curated fixture set makes tests and benchmark results reproducible. If repository size becomes excessive, larger reference assets will move to a checksum-verified download script while compact fixtures remain in Git.
