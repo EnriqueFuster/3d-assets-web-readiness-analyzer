@@ -72,9 +72,13 @@ Out of scope: scoring, recommendations, optimization, API, frontend, and Docker.
 
 ## Slice 4 — API (v0.3)
 
-- `POST /analyze`
-- `POST /optimize`
-- Upload limits, safe temporary files, cleanup, status codes, and structured errors.
+- [x] Expose `GET /health` for deployment health checks.
+- [x] Expose `POST /analyze` with typed JSON output.
+- [x] Expose `POST /optimize` with a downloadable GLB and comparison report.
+- [x] Enforce the application upload limit while copying in bounded chunks.
+- [x] Isolate every request in a temporary workspace and clean it afterward.
+- [x] Return deliberate status codes and structured errors without leaking server paths.
+- [x] Test the HTTP contract and run an end-to-end request with a real GLB.
 
 ## Slice 5 — visual product (v1.0)
 

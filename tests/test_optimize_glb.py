@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-import optimize_glb as optimize_module
+import web_readiness_analyzer.pipeline as optimize_module
 
 
 class FakeComparison:

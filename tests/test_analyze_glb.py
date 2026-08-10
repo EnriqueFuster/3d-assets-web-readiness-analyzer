@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.analyze_glb import validate_glb_path
+from web_readiness_analyzer.pipeline import validate_glb_path
 
 def test_accepts_existing_glb_file(tmp_path: Path) -> None:
     glb_path = tmp_path / "model.glb"

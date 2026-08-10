@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.run_optimizer import run_optimizer
+from web_readiness_analyzer.tooling import run_optimizer
 
 
 def test_rejects_missing_input(tmp_path: Path) -> None:
@@ -66,12 +66,13 @@ def test_runs_profile_specific_optimizer_command(
     output_path = tmp_path / "derived" / "optimized.glb"
     captured: dict = {}
 
-    def fake_run(command: list[str], *, check: bool) -> None:
+    def fake_run(command: list[str], *, cwd: Path, check: bool) -> None:
         captured["command"] = command
+        captured["cwd"] = cwd
         captured["check"] = check
 
     monkeypatch.setattr(
-        "scripts.run_optimizer.subprocess.run",
+        "web_readiness_analyzer.tooling.subprocess.run",
         fake_run,
     )
 
@@ -93,6 +94,7 @@ def test_runs_profile_specific_optimizer_command(
         "--meshopt-level",
         "high",
     ]
+    assert captured["cwd"].name == "3d-assets-web-readiness-analyzer"
     assert captured["check"] is True
 
 

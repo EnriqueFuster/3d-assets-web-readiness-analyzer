@@ -57,7 +57,7 @@ Deferred ideas live in [future.md](future.md).
 
 ## Current status
 
-**Slice 3 complete — profile-aware analysis and optimization.** The CLI validates, inspects, optimizes, revalidates, and compares a GLB against mobile or desktop targets.
+**Slice 4 complete — API for profile-aware analysis and optimization.** The CLI and HTTP API validate, inspect, optimize, revalidate, and compare a GLB against mobile or desktop targets.
 
 The core pipeline exposes:
 
@@ -65,7 +65,28 @@ The core pipeline exposes:
 report = analyze_glb(path, output_path, profile_key="mobile")
 ```
 
-It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. API and UI remain later slices.
+It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. The visual interface remains the next slice.
+
+## HTTP API
+
+Install the project and development dependencies, then start the API:
+
+```powershell
+python -m pip install -e . --group dev
+python -m uvicorn web_readiness_analyzer.api:app --reload
+```
+
+Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
+
+The API exposes:
+
+- `GET /health` for service health checks.
+- `POST /analyze?profile=mobile` with a multipart `file` field. It returns an `AssetReport` as JSON.
+- `POST /optimize?profile=mobile` with a multipart `file` field. It returns a ZIP containing `optimized.glb` and `comparison.json`.
+
+`desktop` is also accepted as a profile. Uploads must have a `.glb` extension and are limited to 25 MiB. Each request uses an isolated temporary workspace that is removed after the response is built. Structured API errors use HTTP 400 for invalid input, 413 for an oversized upload, and 422 when a GLB cannot be processed.
+
+The 25 MiB check is enforced while the application copies the uploaded file. A public deployment must also configure a request-body limit at its reverse proxy or hosting edge so oversized bodies are rejected before reaching the application.
 
 ## Analyzer CLI
 
@@ -134,6 +155,6 @@ Sample files are sourced from the Khronos glTF Sample Assets repository. See [sa
 
 ## Technical direction
 
-Python will own the domain model, orchestration, heuristics, comparisons, and future FastAPI layer. Khronos glTF Validator and glTF Transform will provide specialized validation, inspection, and optimization instead of being reimplemented.
+Python owns the domain model, orchestration, heuristics, comparisons, and FastAPI layer. Khronos glTF Validator and glTF Transform provide specialized validation, inspection, and optimization instead of being reimplemented.
 
 Exact tool versions will be recorded with generated reports. JavaScript tooling will be installed locally and invoked with `npm.cmd`/`npx.cmd` on Windows; no global installation or PowerShell policy change is required.
