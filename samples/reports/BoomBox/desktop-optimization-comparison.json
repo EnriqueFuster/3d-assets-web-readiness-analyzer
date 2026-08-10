@@ -66,53 +66,31 @@
       "extensions_required": []
     },
     "profile": {
-      "key": "mobile",
-      "name": "Mobile Web / AR — strict",
-      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
-      "max_file_size_bytes": 3000000,
-      "max_triangles": 30000,
-      "max_texture_resolution": 1024,
-      "max_texture_gpu_bytes": 67108864
+      "key": "desktop",
+      "name": "Desktop Web Product Viewer",
+      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
+      "max_file_size_bytes": 5000000,
+      "max_triangles": 100000,
+      "max_texture_resolution": 2048,
+      "max_texture_gpu_bytes": 134217728
     },
     "findings": [
       {
         "code": "FILE_SIZE_EXCEEDED",
         "severity": "warning",
         "metric": "file_size_bytes",
-        "message": "The GLB exceeds the file-size budget for profile 'Mobile Web / AR — strict'.",
+        "message": "The GLB exceeds the file-size budget for profile 'Desktop Web Product Viewer'.",
         "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
         "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
-        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
         "measured_value": 10614184,
-        "threshold": 3000000
-      },
-      {
-        "code": "TEXTURE_RESOLUTION_EXCEEDED",
-        "severity": "warning",
-        "metric": "texture_max_dimension_px",
-        "message": "At least one texture exceeds the resolution budget for profile 'Mobile Web / AR — strict'.",
-        "rationale": "Large texture dimensions increase decoded GPU memory even when the transferred image is compressed.",
-        "recommendation": "Resize textures by material role and verify fine details visually.",
-        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
-        "measured_value": 2048,
-        "threshold": 1024
-      },
-      {
-        "code": "TEXTURE_MEMORY_EXCEEDED",
-        "severity": "warning",
-        "metric": "estimated_texture_gpu_bytes",
-        "message": "Estimated texture GPU memory exceeds the heuristic budget for profile 'Mobile Web / AR — strict'.",
-        "rationale": "High decoded texture memory can cause memory pressure, stuttering, or eviction on target devices.",
-        "recommendation": "Consider KTX2 GPU compression or lower resolutions, then test on representative hardware.",
-        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
-        "measured_value": 89478480,
-        "threshold": 67108864
+        "threshold": 5000000
       }
     ]
   },
   "after": {
-    "source": "samples\\derived\\BoomBox\\BoomBox-mobile-optimized.glb",
-    "file_size_bytes": 2142516,
+    "source": "samples\\derived\\BoomBox\\BoomBox-desktop-optimized.glb",
+    "file_size_bytes": 8521416,
     "validation": {
       "validator_version": "2.0.0-dev.3.10",
       "errors": 0,
@@ -143,10 +121,10 @@
       },
       "textures": {
         "count": 4,
-        "embedded_bytes": 2092715,
-        "estimated_gpu_bytes": 22369616,
-        "max_width": 1024,
-        "max_height": 1024
+        "embedded_bytes": 8471626,
+        "estimated_gpu_bytes": 89478480,
+        "max_width": 2048,
+        "max_height": 2048
       },
       "animations": 0,
       "extensions_used": [
@@ -159,21 +137,33 @@
       ]
     },
     "profile": {
-      "key": "mobile",
-      "name": "Mobile Web / AR — strict",
-      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's web AR audit-profile example. The 64 MiB texture-memory budget is a project heuristic and must be validated on target devices.",
-      "max_file_size_bytes": 3000000,
-      "max_triangles": 30000,
-      "max_texture_resolution": 1024,
-      "max_texture_gpu_bytes": 67108864
+      "key": "desktop",
+      "name": "Desktop Web Product Viewer",
+      "source_note": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
+      "max_file_size_bytes": 5000000,
+      "max_triangles": 100000,
+      "max_texture_resolution": 2048,
+      "max_texture_gpu_bytes": 134217728
     },
-    "findings": []
+    "findings": [
+      {
+        "code": "FILE_SIZE_EXCEEDED",
+        "severity": "warning",
+        "metric": "file_size_bytes",
+        "message": "The GLB exceeds the file-size budget for profile 'Desktop Web Product Viewer'.",
+        "rationale": "Transfer size affects download time, data usage, and time to first render, especially on constrained networks.",
+        "recommendation": "Inspect texture size and geometry, then compare an optimized output.",
+        "threshold_source": "File, triangle, and texture-resolution budgets follow Khronos's general desktop Web/mobile AR publishing guidance. The 128 MiB texture-memory budget is a project heuristic, not a standard.",
+        "measured_value": 8521416,
+        "threshold": 5000000
+      }
+    ]
   },
   "file_size": {
     "before": 10614184,
-    "after": 2142516,
-    "absolute_change": -8471668,
-    "percent_change": -79.81459526233952
+    "after": 8521416,
+    "absolute_change": -2092768,
+    "percent_change": -19.716711148026075
   },
   "triangles": {
     "before": 6036,
@@ -183,9 +173,9 @@
   },
   "texture_gpu_bytes": {
     "before": 89478480,
-    "after": 22369616,
-    "absolute_change": -67108864,
-    "percent_change": -75.00000447034863
+    "after": 89478480,
+    "absolute_change": 0,
+    "percent_change": 0.0
   },
   "render_primitives": {
     "before": 6036,
@@ -200,19 +190,22 @@
     "percent_change": 0.0
   },
   "validity_regression": false,
-  "optimization_status": "pending_visual_qa",
+  "optimization_status": "accepted",
   "readiness": {
-    "profile_key": "mobile",
+    "profile_key": "desktop",
     "before_ready": false,
-    "after_ready": true,
-    "resolved_findings": [
-      "FILE_SIZE_EXCEEDED",
-      "TEXTURE_MEMORY_EXCEEDED",
-      "TEXTURE_RESOLUTION_EXCEEDED"
+    "after_ready": false,
+    "resolved_findings": [],
+    "remaining_findings": [
+      "FILE_SIZE_EXCEEDED"
     ],
-    "remaining_findings": [],
     "introduced_findings": []
   },
   "rejection_reasons": [],
-  "visual_qa": null
+  "visual_qa": {
+    "passed": true,
+    "notes": "Deterministic 800x800 renders were compared with identical renderer, camera, lighting, and background. No visible regressions were found for the desktop preset. Mean absolute pixel difference was 0.31/255 per channel; localized differences were limited to rasterization edges.",
+    "reviewer": "manual-local-review",
+    "reviewed_at": "2026-08-10T09:31:40.863376Z"
+  }
 }

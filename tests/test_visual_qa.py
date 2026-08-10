@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 
 from web_readiness_analyzer.comparison import compare_reports
-from web_readiness_analyzer.models import OptimizationStatus
+from web_readiness_analyzer.models import OptimizationAcceptanceStatus
 from web_readiness_analyzer.visual_qa import (
     VISUAL_QA_REJECTION_REASON,
     record_visual_qa,
@@ -26,7 +26,10 @@ def test_passing_visual_qa_accepts_valid_optimization() -> None:
         reviewed_at=REVIEWED_AT,
     )
 
-    assert reviewed.status == OptimizationStatus.ACCEPTED
+    assert (
+        reviewed.optimization_status
+        == OptimizationAcceptanceStatus.ACCEPTED
+    )
     assert reviewed.rejection_reasons == []
     assert reviewed.visual_qa is not None
     assert reviewed.visual_qa.passed is True
@@ -43,7 +46,10 @@ def test_failing_visual_qa_rejects_optimization() -> None:
         reviewed_at=REVIEWED_AT,
     )
 
-    assert reviewed.status == OptimizationStatus.REJECTED
+    assert (
+        reviewed.optimization_status
+        == OptimizationAcceptanceStatus.REJECTED
+    )
     assert reviewed.rejection_reasons == [VISUAL_QA_REJECTION_REASON]
 
 
@@ -57,7 +63,10 @@ def test_visual_qa_cannot_override_validity_regression() -> None:
         reviewed_at=REVIEWED_AT,
     )
 
-    assert reviewed.status == OptimizationStatus.REJECTED
+    assert (
+        reviewed.optimization_status
+        == OptimizationAcceptanceStatus.REJECTED
+    )
     assert reviewed.rejection_reasons == [
         "The optimized asset introduced new validation errors."
     ]

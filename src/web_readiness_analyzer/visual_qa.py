@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from web_readiness_analyzer.models import (
     ComparisonReport,
-    OptimizationStatus,
+    OptimizationAcceptanceStatus,
     VisualQAReview,
 )
 
@@ -42,15 +42,15 @@ def record_visual_qa(
     if not passed:
         rejection_reasons.append(VISUAL_QA_REJECTION_REASON)
 
-    status = (
-        OptimizationStatus.ACCEPTED
+    optimization_status = (
+        OptimizationAcceptanceStatus.ACCEPTED
         if passed and not comparison.validity_regression
-        else OptimizationStatus.REJECTED
+        else OptimizationAcceptanceStatus.REJECTED
     )
 
     return comparison.model_copy(
         update={
-            "status": status,
+            "optimization_status": optimization_status,
             "rejection_reasons": rejection_reasons,
             "visual_qa": review,
         }

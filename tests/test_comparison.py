@@ -5,13 +5,17 @@ from web_readiness_analyzer.comparison import (
 )
 from web_readiness_analyzer.models import (
     AssetReport,
+    Finding,
     GeometryMetrics,
     InspectionSummary,
     MaterialMetrics,
-    OptimizationStatus,
+    OptimizationAcceptanceStatus,
+    Severity,
     TextureMetrics,
     ValidationSummary,
 )
+from web_readiness_analyzer.rules import DESKTOP_WEB, MOBILE_AR
+
 
 def test_compare_metric_calculates_reduction() -> None:
     comparison = compare_metric(
@@ -55,6 +59,8 @@ def _report(
     texture_gpu_bytes: int = 1_000,
     render_primitives: int = 100,
     materials: int = 1,
+    finding_codes: tuple[str, ...] = (),
+    profile=MOBILE_AR,
 ) -> AssetReport:
     return AssetReport(
         source="model.glb",
@@ -91,6 +97,21 @@ def _report(
             extensions_used=[],
             extensions_required=[],
         ),
+        profile=profile,
+        findings=[
+            Finding(
+                code=code,
+                severity=Severity.WARNING,
+                metric="test_metric",
+                message="Test finding",
+                rationale="Test rationale",
+                recommendation="Test recommendation",
+                threshold_source="Test source",
+                measured_value=2,
+                threshold=1,
+            )
+            for code in finding_codes
+        ],
     )
 
 
@@ -112,7 +133,12 @@ def test_compare_reports_compares_all_metrics() -> None:
     assert comparison.render_primitives.absolute_change == -20
     assert comparison.materials.absolute_change == 0
     assert comparison.validity_regression is False
-    assert comparison.status == OptimizationStatus.PENDING_VISUAL_QA
+    assert (
+        comparison.optimization_status
+        == OptimizationAcceptanceStatus.PENDING_VISUAL_QA
+    )
+    assert comparison.readiness.before_ready is True
+    assert comparison.readiness.after_ready is True
     assert comparison.rejection_reasons == []
 
 
@@ -123,10 +149,41 @@ def test_compare_reports_detects_validity_regression() -> None:
     comparison = compare_reports(before, after)
 
     assert comparison.validity_regression is True
-    assert comparison.status == OptimizationStatus.REJECTED
+    assert (
+        comparison.optimization_status
+        == OptimizationAcceptanceStatus.REJECTED
+    )
     assert comparison.rejection_reasons == [
         "The optimized asset introduced new validation errors."
     ]
+
+
+def test_compare_reports_tracks_readiness_separately() -> None:
+    before = _report(
+        finding_codes=("FILE_SIZE_EXCEEDED", "TEXTURE_RESOLUTION_EXCEEDED")
+    )
+    after = _report(finding_codes=("FILE_SIZE_EXCEEDED",))
+
+    comparison = compare_reports(before, after)
+
+    assert comparison.readiness.before_ready is False
+    assert comparison.readiness.after_ready is False
+    assert comparison.readiness.resolved_findings == [
+        "TEXTURE_RESOLUTION_EXCEEDED"
+    ]
+    assert comparison.readiness.remaining_findings == [
+        "FILE_SIZE_EXCEEDED"
+    ]
+    assert comparison.readiness.introduced_findings == []
+    assert (
+        comparison.optimization_status
+        == OptimizationAcceptanceStatus.PENDING_VISUAL_QA
+    )
+
+
+def test_compare_reports_rejects_different_profiles() -> None:
+    with pytest.raises(ValueError, match="same analysis profile"):
+        compare_reports(_report(profile=MOBILE_AR), _report(profile=DESKTOP_WEB))
 
 
 def test_compare_reports_requires_inspection_data() -> None:

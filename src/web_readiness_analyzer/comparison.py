@@ -2,7 +2,8 @@ from web_readiness_analyzer.models import (
     AssetReport,
     ComparisonReport,
     MetricComparison,
-    OptimizationStatus,
+    OptimizationAcceptanceStatus,
+    ReadinessComparison,
 )
 
 
@@ -24,6 +25,8 @@ def compare_metric(
         absolute_change=absolute_change,
         percent_change=percent_change,
     )
+
+
 def compare_reports(
     before: AssetReport,
     after: AssetReport,
@@ -32,6 +35,11 @@ def compare_reports(
         raise ValueError(
             "Both reports must contain inspection data"
         )
+    if before.profile is None or after.profile is None:
+        raise ValueError("Both reports must contain an analysis profile")
+    if before.profile.key != after.profile.key:
+        raise ValueError("Both reports must use the same analysis profile")
+
     validity_regression = (
         after.validation.errors
         > before.validation.errors
@@ -43,10 +51,26 @@ def compare_reports(
             "The optimized asset introduced new validation errors."
         )
 
-    status = (
-        OptimizationStatus.REJECTED
+    optimization_status = (
+        OptimizationAcceptanceStatus.REJECTED
         if rejection_reasons
-        else OptimizationStatus.PENDING_VISUAL_QA
+        else OptimizationAcceptanceStatus.PENDING_VISUAL_QA
+    )
+    before_codes = {finding.code for finding in before.findings}
+    after_codes = {finding.code for finding in after.findings}
+    readiness = ReadinessComparison(
+        profile_key=before.profile.key,
+        before_ready=(
+            before.validation.errors == 0
+            and not before_codes
+        ),
+        after_ready=(
+            after.validation.errors == 0
+            and not after_codes
+        ),
+        resolved_findings=sorted(before_codes - after_codes),
+        remaining_findings=sorted(before_codes & after_codes),
+        introduced_findings=sorted(after_codes - before_codes),
     )
 
     return ComparisonReport(
@@ -73,6 +97,7 @@ def compare_reports(
             after.inspection.materials.count,
         ),
         validity_regression=validity_regression,
-        status=status,
+        optimization_status=optimization_status,
+        readiness=readiness,
         rejection_reasons=rejection_reasons,
     )

@@ -10,7 +10,7 @@ class Severity(StrEnum):
     CRITICAL = "critical"
 
 
-class OptimizationStatus(StrEnum):
+class OptimizationAcceptanceStatus(StrEnum):
     REJECTED = "rejected"
     PENDING_VISUAL_QA = "pending_visual_qa"
     ACCEPTED = "accepted"
@@ -108,6 +108,15 @@ class VisualQAReview(BaseModel):
     reviewed_at: datetime
 
 
+class ReadinessComparison(BaseModel):
+    profile_key: str
+    before_ready: bool
+    after_ready: bool
+    resolved_findings: list[str] = Field(default_factory=list)
+    remaining_findings: list[str] = Field(default_factory=list)
+    introduced_findings: list[str] = Field(default_factory=list)
+
+
 class ComparisonReport(BaseModel):
     before: AssetReport
     after: AssetReport
@@ -117,7 +126,8 @@ class ComparisonReport(BaseModel):
     render_primitives: MetricComparison
     materials: MetricComparison
     validity_regression: bool
-    status: OptimizationStatus
+    optimization_status: OptimizationAcceptanceStatus
+    readiness: ReadinessComparison
     rejection_reasons: list[str] = Field(
         default_factory=list
     )

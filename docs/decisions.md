@@ -49,3 +49,13 @@
 **Reason:** The bundled older Sharp/libvips version has high-severity advisories involving crafted images. This matters for the future public upload boundary even though Day 0 inputs are trusted.
 
 **Trade-off:** The override is outside glTF Transform's published dependency resolution and therefore needs regression tests. It can be removed when upstream adopts a safe version.
+
+## ADR-006: Separate optimization acceptance from profile readiness
+
+**Status:** accepted on 2026-08-10
+
+**Decision:** Report `optimization_status` and target-profile `readiness` independently. Apply explicit mobile and desktop presets whose texture limits match their analysis profiles.
+
+**Reason:** A transformation can be valid and visually acceptable while the resulting asset still exceeds a target budget. Conversely, automated budgets can pass before visual quality has been reviewed.
+
+**Trade-off:** Consumers must present two related states instead of one simplified pass/fail result. The distinction avoids claiming that an improvement has made an asset web-ready when findings remain.

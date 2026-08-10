@@ -32,8 +32,8 @@ def test_orchestrates_complete_pipeline(
             else "after-report"
         )
 
-    def fake_optimizer(source, destination):
-        optimizer_calls.append((source, destination))
+    def fake_optimizer(source, destination, profile_key):
+        optimizer_calls.append((source, destination, profile_key))
 
     def fake_compare(before, after):
         assert before == "before-report"
@@ -65,7 +65,7 @@ def test_orchestrates_complete_pipeline(
 
     assert isinstance(result, FakeComparison)
     assert optimizer_calls == [
-        (input_path, optimized_path)
+        (input_path, optimized_path, "mobile")
     ]
     assert analysis_calls == [
         (

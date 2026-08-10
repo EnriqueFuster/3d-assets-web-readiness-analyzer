@@ -67,6 +67,8 @@ Out of scope: scoring, recommendations, optimization, API, frontend, and Docker.
 - [x] Reject critical validity regressions.
 - [x] Require and record visual QA before acceptance.
 - [x] Preserve a reproducible BoomBox before/after case.
+- [x] Separate optimization acceptance from target-profile readiness.
+- [x] Apply explicit mobile and desktop optimization presets.
 
 ## Slice 4 — API (v0.3)
 

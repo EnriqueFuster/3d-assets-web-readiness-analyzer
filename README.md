@@ -57,7 +57,7 @@ Deferred ideas live in [future.md](future.md).
 
 ## Current status
 
-**Slice 2 complete — profile-aware analyzer.** The CLI validates and inspects a GLB, maps the results into typed models, and evaluates explainable readiness rules for mobile or desktop targets.
+**Slice 3 complete — profile-aware analysis and optimization.** The CLI validates, inspects, optimizes, revalidates, and compares a GLB against mobile or desktop targets.
 
 The core pipeline exposes:
 
@@ -65,7 +65,7 @@ The core pipeline exposes:
 report = analyze_glb(path, output_path, profile_key="mobile")
 ```
 
-It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. Optimization, API, and UI remain later slices.
+It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. API and UI remain later slices.
 
 ## Analyzer CLI
 
@@ -95,7 +95,19 @@ The pipeline analyzes the source, optimizes a separate copy, revalidates it, and
 python .\scripts\review_optimization.py comparison.json --passed --notes "No visible regressions."
 ```
 
-The BoomBox reference case reduced transfer size from 10,614,184 to 8,521,416 bytes (19.72%) and triangles from 6,036 to 5,706 (5.47%), with no new validation errors. Decoded texture-memory cost remained unchanged, demonstrating that transfer compression and runtime GPU memory are different concerns. Deterministic 800x800 renders found no visible regression; the comparison is recorded as `accepted`.
+Optimization acceptance and profile readiness are separate decisions:
+
+- `optimization_status` describes validity and visual QA of the transformation.
+- `readiness.after_ready` describes whether the optimized result has no validation errors and no remaining findings for the selected profile.
+
+| Preset | Max texture dimension | Texture encoding | Geometry compression |
+| --- | ---: | --- | --- |
+| `mobile` | 1,024 px | Preserve/recompress automatically | Meshopt high |
+| `desktop` | 2,048 px | Preserve/recompress automatically | Meshopt high |
+
+For BoomBox, the mobile preset reduced transfer size from 10,614,184 to 2,142,516 bytes (79.81%), reduced estimated decoded texture memory from 89,478,480 to 22,369,616 bytes, and resolved all mobile findings. It is `pending_visual_qa` because resizing textures requires a new visual review.
+
+The desktop preset reduced transfer size to 8,521,416 bytes (19.72%) without reducing texture resolution. Its transformation is `accepted` after deterministic visual QA, while `readiness.after_ready` remains false because the 5 MB desktop transfer budget is still exceeded. This distinction prevents an acceptable transformation from being mislabeled as profile-compliant.
 
 ## Planned releases
 

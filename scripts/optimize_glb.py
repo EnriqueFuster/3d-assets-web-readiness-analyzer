@@ -30,6 +30,7 @@ def optimize_glb(
     run_optimizer(
         input_path,
         optimized_path,
+        profile_key,
     )
 
     after = analyze_glb(
