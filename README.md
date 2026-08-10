@@ -88,6 +88,32 @@ The API exposes:
 
 The 25 MiB check is enforced while the application copies the uploaded file. A public deployment must also configure a request-body limit at its reverse proxy or hosting edge so oversized bodies are rejected before reaching the application.
 
+## React frontend
+
+The browser interface is a separate React, TypeScript, and Vite application in `frontend/`. Run the API in one terminal:
+
+```powershell
+python -m uvicorn web_readiness_analyzer.api:app --reload
+```
+
+Then install and run the frontend in another terminal:
+
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+Open `http://127.0.0.1:5173`. The Vite development server proxies `/api/*` requests to FastAPI at `http://127.0.0.1:8000`, so the browser interface and backend remain separate without development-only CORS configuration.
+
+The interface supports GLB drag-and-drop, mobile/desktop profiles, structured analysis results, original/optimized 3D previews, before/after metrics, and ZIP download. Create a production build with:
+
+```powershell
+npm.cmd run build
+```
+
+The generated static site is written to `frontend/dist/` and is not committed.
+
 ## Analyzer CLI
 
 ```powershell
@@ -141,13 +167,14 @@ The desktop preset reduced transfer size to 8,521,416 bytes (19.72%) without red
 
 ```text
 docs/       decisions, baseline, and development log
+frontend/   React, TypeScript, Vite, and the browser interface
 samples/    licensed GLB fixtures and provenance
 src/        typed domain models, rules, comparison, and QA policy
 scripts/    command-line orchestration
 tests/      unit and orchestration tests
 ```
 
-The backend and frontend directories will be introduced only when their first vertical slices begin.
+The frontend remains independently buildable from the Python backend so each layer has a clear responsibility and deployment boundary.
 
 ## Sample assets
 
