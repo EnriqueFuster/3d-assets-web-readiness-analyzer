@@ -89,7 +89,7 @@ Out of scope: scoring, recommendations, optimization, API, frontend, and Docker.
 - [x] Add focused frontend interaction tests for analysis, errors, and optimization.
 - [x] Package the full application with a multistage Docker build and health check.
 - [x] Verify analysis and optimization with a real GLB inside the container.
-- [ ] Run backend and frontend quality gates in CI.
+- [x] Define backend and frontend quality gates with GitHub Actions.
 - [ ] Deploy the public demo and complete the README case study.
 
 ## Quality gates

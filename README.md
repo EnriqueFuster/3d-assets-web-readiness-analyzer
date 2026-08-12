@@ -158,6 +158,17 @@ docker compose down
 
 The multistage `Dockerfile` compiles React separately, installs the pinned Node tooling separately, and copies only their runtime outputs into the final Python image. Uploads remain ephemeral and are processed in per-request temporary directories inside the container.
 
+## Continuous integration
+
+GitHub Actions runs two independent quality gates on every push and pull request:
+
+```text
+Backend   Python 3.13 + Node 24 → npm ci → pytest
+Frontend  Node 24 → npm ci → Vitest → production build
+```
+
+The workflow lives in `.github/workflows/ci.yml`. It uses clean Linux runners, lockfile-based Node installations, cached dependency downloads, and read-only repository permissions. A passing run demonstrates that the Python pipeline and React interface can be installed and verified without relying on the local development environment.
+
 ## Analyzer CLI
 
 ```powershell
