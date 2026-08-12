@@ -34,7 +34,18 @@ OPTIMIZATION_PRESETS = {
 }
 
 
-def get_optimization_preset(profile_key: str) -> OptimizationPreset:
+def get_optimization_preset(
+    profile_key: str,
+    texture_size: int | None = None,
+) -> OptimizationPreset:
+    if profile_key == "custom" and texture_size is not None:
+        return OptimizationPreset(
+            key="custom",
+            texture_size=texture_size,
+            texture_compress="auto",
+            geometry_compress="meshopt",
+            meshopt_level="high",
+        )
     try:
         return OPTIMIZATION_PRESETS[profile_key]
     except KeyError as error:

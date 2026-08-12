@@ -12,6 +12,7 @@ from web_readiness_analyzer.rules import (
     DESKTOP_WEB,
     MOBILE_AR,
     evaluate_report,
+    build_custom_profile,
     get_profile,
 )
 
@@ -161,3 +162,16 @@ def test_desktop_profile_allows_larger_asset_than_mobile() -> None:
 def test_unknown_profile_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unknown profile"):
         get_profile("console")
+
+
+def test_builds_custom_profile_from_user_requirements() -> None:
+    profile = build_custom_profile(
+        max_file_size_bytes=4_000_000,
+        max_triangles=50_000,
+        max_texture_resolution=1_536,
+        max_texture_gpu_bytes=96 * 1_024 * 1_024,
+    )
+
+    assert profile.key == "custom"
+    assert profile.max_triangles == 50_000
+    assert "User-defined" in profile.source_note

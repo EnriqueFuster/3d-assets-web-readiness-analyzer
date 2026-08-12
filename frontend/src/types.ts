@@ -1,4 +1,10 @@
-export type ProfileKey = "mobile" | "desktop";
+export type ProfileKey = "mobile" | "desktop" | "custom";
+export interface CustomProfileValues {
+  maxFileSizeMb: number;
+  maxTriangles: number;
+  maxTextureResolution: number;
+  maxTextureGpuMemoryMib: number;
+}
 export type Severity = "info" | "warning" | "critical";
 
 export interface ValidationIssue {

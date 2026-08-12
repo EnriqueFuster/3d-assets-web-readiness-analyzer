@@ -8,15 +8,44 @@ from fastapi import APIRouter, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
-from web_readiness_analyzer.models import AssetReport, ComparisonReport
+from web_readiness_analyzer.models import AnalysisProfile, AssetReport, ComparisonReport
 from web_readiness_analyzer.pipeline import analyze_glb, optimize_glb
-from web_readiness_analyzer.rules import DEFAULT_PROFILE_KEY, get_profile
+from web_readiness_analyzer.rules import (
+    DEFAULT_PROFILE_KEY,
+    build_custom_profile,
+    get_profile,
+)
 
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 COPY_CHUNK_BYTES = 1024 * 1024
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = PROJECT_ROOT / "frontend" / "dist"
+
+
+def resolve_request_profile(
+    profile: str,
+    max_file_size_mb: float | None,
+    max_triangles: int | None,
+    max_texture_resolution: int | None,
+    max_texture_gpu_memory_mib: int | None,
+) -> AnalysisProfile:
+    if profile != "custom":
+        return get_profile(profile)
+    custom_values = (
+        max_file_size_mb,
+        max_triangles,
+        max_texture_resolution,
+        max_texture_gpu_memory_mib,
+    )
+    if any(value is None for value in custom_values):
+        raise ValueError("All custom profile limits are required")
+    return build_custom_profile(
+        max_file_size_bytes=int(max_file_size_mb * 1_000_000),
+        max_triangles=max_triangles,
+        max_texture_resolution=max_texture_resolution,
+        max_texture_gpu_bytes=max_texture_gpu_memory_mib * 1_024 * 1_024,
+    )
 
 
 class UploadTooLargeError(ValueError):
@@ -106,9 +135,19 @@ def health() -> dict[str, str]:
 def analyze_asset(
     file: UploadFile = File(...),
     profile: str = Query(DEFAULT_PROFILE_KEY),
+    max_file_size_mb: float | None = Query(None, gt=0, le=25),
+    max_triangles: int | None = Query(None, gt=0, le=2_000_000),
+    max_texture_resolution: int | None = Query(None, ge=256, le=8_192),
+    max_texture_gpu_memory_mib: int | None = Query(None, gt=0, le=2_048),
 ) -> AssetReport:
     try:
-        get_profile(profile)
+        target = resolve_request_profile(
+            profile,
+            max_file_size_mb,
+            max_triangles,
+            max_texture_resolution,
+            max_texture_gpu_memory_mib,
+        )
         with TemporaryDirectory(prefix="web-readiness-") as temporary:
             workspace = Path(temporary)
             input_path = workspace / "input.glb"
@@ -120,7 +159,7 @@ def analyze_asset(
             report = analyze_glb(
                 input_path,
                 workspace / "analysis.json",
-                profile,
+                target,
             )
             return report.model_copy(
                 update={"source": _client_source(file.filename)}
@@ -133,9 +172,19 @@ def analyze_asset(
 def optimize_asset(
     file: UploadFile = File(...),
     profile: str = Query(DEFAULT_PROFILE_KEY),
+    max_file_size_mb: float | None = Query(None, gt=0, le=25),
+    max_triangles: int | None = Query(None, gt=0, le=2_000_000),
+    max_texture_resolution: int | None = Query(None, ge=256, le=8_192),
+    max_texture_gpu_memory_mib: int | None = Query(None, gt=0, le=2_048),
 ) -> Response:
     try:
-        get_profile(profile)
+        target = resolve_request_profile(
+            profile,
+            max_file_size_mb,
+            max_triangles,
+            max_texture_resolution,
+            max_texture_gpu_memory_mib,
+        )
         with TemporaryDirectory(prefix="web-readiness-") as temporary:
             workspace = Path(temporary)
             input_path = workspace / "input.glb"
@@ -149,7 +198,7 @@ def optimize_asset(
                 input_path,
                 optimized_path,
                 workspace / "comparison.json",
-                profile,
+                target,
             )
             comparison = _sanitize_comparison_sources(
                 comparison,

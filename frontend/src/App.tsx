@@ -5,7 +5,7 @@ import { ComparisonView } from "./components/ComparisonView";
 import { ModelViewer } from "./components/ModelViewer";
 import { ReportView } from "./components/ReportView";
 import { UploadPanel } from "./components/UploadPanel";
-import type { AssetReport, OptimizationResult, ProfileKey } from "./types";
+import type { AssetReport, CustomProfileValues, OptimizationResult, ProfileKey } from "./types";
 
 type Operation = "analyzing" | "optimizing" | null;
 
@@ -18,6 +18,12 @@ function errorMessage(error: unknown): string {
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
   const [profile, setProfile] = useState<ProfileKey>("mobile");
+  const [customProfile, setCustomProfile] = useState<CustomProfileValues>({
+    maxFileSizeMb: 5,
+    maxTriangles: 100000,
+    maxTextureResolution: 2048,
+    maxTextureGpuMemoryMib: 128,
+  });
   const [operation, setOperation] = useState<Operation>(null);
   const [report, setReport] = useState<AssetReport | null>(null);
   const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
@@ -58,7 +64,7 @@ export default function App() {
     setError(null);
     setOptimization(null);
     try {
-      setReport(await analyzeAsset(file, profile));
+      setReport(await analyzeAsset(file, profile, customProfile));
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
@@ -71,7 +77,7 @@ export default function App() {
     setOperation("optimizing");
     setError(null);
     try {
-      const result = await optimizeAsset(file, profile);
+      const result = await optimizeAsset(file, profile, customProfile);
       setOptimization(result);
       setReport(result.comparison.before);
     } catch (caught) {
@@ -94,11 +100,11 @@ export default function App() {
   return (
     <>
       <header className="hero">
-        <nav><span className="brand-mark">WRA</span><span>3D Web Readiness Analyzer</span></nav>
+        <nav>3D Web Readiness Analyzer</nav>
         <div className="hero__content">
           <p className="eyebrow">GLB diagnostics · Profile-aware budgets</p>
           <h1>Know what your 3D asset costs before it reaches the browser.</h1>
-          <p>Validate, inspect, and optimize product GLBs against explicit mobile or desktop targets.</p>
+          <p>Check whether a product model is suitable for an ecommerce viewer, mobile experience, or Web AR flow. Find delivery and GPU risks, then compare an optimized copy before publishing it.</p>
         </div>
       </header>
 
@@ -106,9 +112,11 @@ export default function App() {
         <UploadPanel
           file={file}
           profile={profile}
+          customProfile={customProfile}
           busy={operation !== null}
           onFileChange={selectFile}
           onProfileChange={(next) => { setProfile(next); setReport(null); setOptimization(null); }}
+          onCustomProfileChange={setCustomProfile}
           onAnalyze={runAnalysis}
           onOptimize={runOptimization}
         />
@@ -127,7 +135,7 @@ export default function App() {
         {optimization && <ComparisonView report={optimization.comparison} onDownload={downloadResult} />}
       </main>
 
-      <footer>Static metrics are performance proxies. Verify visual quality and runtime behavior on target devices.</footer>
+      <footer>File size and asset structure are measured directly. GPU memory and rendering cost are estimates; verify FPS, load time, and visual quality on representative devices.</footer>
     </>
   );
 }

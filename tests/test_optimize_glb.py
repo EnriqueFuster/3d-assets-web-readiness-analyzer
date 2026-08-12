@@ -32,8 +32,8 @@ def test_orchestrates_complete_pipeline(
             else "after-report"
         )
 
-    def fake_optimizer(source, destination, profile_key):
-        optimizer_calls.append((source, destination, profile_key))
+    def fake_optimizer(source, destination, profile_key, *, texture_size):
+        optimizer_calls.append((source, destination, profile_key, texture_size))
 
     def fake_compare(before, after):
         assert before == "before-report"
@@ -65,18 +65,18 @@ def test_orchestrates_complete_pipeline(
 
     assert isinstance(result, FakeComparison)
     assert optimizer_calls == [
-        (input_path, optimized_path, "mobile")
+        (input_path, optimized_path, "mobile", 1024)
     ]
     assert analysis_calls == [
         (
             input_path,
             tmp_path / "reports" / "comparison.before.json",
-            "mobile",
+            optimize_module.get_profile("mobile"),
         ),
         (
             optimized_path,
             tmp_path / "reports" / "comparison.after.json",
-            "mobile",
+            optimize_module.get_profile("mobile"),
         ),
     ]
     assert comparison_path.read_text(

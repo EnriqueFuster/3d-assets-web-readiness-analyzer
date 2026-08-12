@@ -41,6 +41,36 @@ PROFILES = {
 DEFAULT_PROFILE_KEY = MOBILE_AR.key
 
 
+def build_custom_profile(
+    *,
+    max_file_size_bytes: int,
+    max_triangles: int,
+    max_texture_resolution: int,
+    max_texture_gpu_bytes: int,
+) -> AnalysisProfile:
+    """Build a user-defined target while preserving the report contract."""
+    values = (
+        max_file_size_bytes,
+        max_triangles,
+        max_texture_resolution,
+        max_texture_gpu_bytes,
+    )
+    if any(value <= 0 for value in values):
+        raise ValueError("Custom profile limits must be greater than zero")
+    return AnalysisProfile(
+        key="custom",
+        name="Custom target",
+        source_note=(
+            "User-defined project requirements. These limits are not an "
+            "industry standard and should be validated on target devices."
+        ),
+        max_file_size_bytes=max_file_size_bytes,
+        max_triangles=max_triangles,
+        max_texture_resolution=max_texture_resolution,
+        max_texture_gpu_bytes=max_texture_gpu_bytes,
+    )
+
+
 def get_profile(profile_key: str) -> AnalysisProfile:
     """Return a named profile or raise an actionable error."""
     try:

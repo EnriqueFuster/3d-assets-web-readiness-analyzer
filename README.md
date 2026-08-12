@@ -91,7 +91,7 @@ Interactive OpenAPI documentation is available at `/docs` while the API is runni
 | `POST` | `/api/analyze?profile=mobile` | Structured `AssetReport` JSON |
 | `POST` | `/api/optimize?profile=mobile` | ZIP with `optimized.glb` and `comparison.json` |
 
-Both POST endpoints accept a multipart `file` field. Supported profiles are `mobile` and `desktop`; uploads must use the `.glb` extension and are limited to 25 MiB.
+Both POST endpoints accept a multipart `file` field. Supported profiles are `mobile`, `desktop`, and `custom`; uploads must use the `.glb` extension and are limited to 25 MiB. A custom request also supplies `max_file_size_mb`, `max_triangles`, `max_texture_resolution`, and `max_texture_gpu_memory_mib` as query parameters.
 
 Before invoking external tooling, the backend verifies the GLB container header, version, and declared byte length. Validator, inspector, and optimizer processes share a 120-second deadline and expose controlled API errors instead of running indefinitely or leaking internal paths.
 
@@ -126,8 +126,11 @@ Optimization acceptance and target readiness are deliberately separate:
 | --- | ---: | ---: | ---: | ---: |
 | `mobile` | 3,000,000 | 30,000 | 1,024 px | 64 MiB |
 | `desktop` | 5,000,000 | 100,000 | 2,048 px | 128 MiB |
+| `custom` | User-defined | User-defined | User-defined | User-defined |
 
 File-size, triangle, and texture-resolution budgets are informed by Khronos publishing guidance and its Web AR audit-profile example. GPU-memory budgets are project heuristics. Static inspection does not replace testing on representative browsers and devices.
+
+For custom optimization, the texture-resolution limit controls the optimizer directly. File size, triangle count, and estimated texture memory remain acceptance targets used to evaluate the output; the pipeline does not claim it can force an asset to reach those exact values.
 
 ## Reference result
 

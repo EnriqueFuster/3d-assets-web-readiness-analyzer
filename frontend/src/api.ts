@@ -2,6 +2,7 @@ import { unzipSync, strFromU8 } from "fflate";
 
 import type {
   AssetReport,
+  CustomProfileValues,
   OptimizationResult,
   ProfileKey,
 } from "./types";
@@ -44,11 +45,29 @@ function uploadBody(file: File): FormData {
   return form;
 }
 
+function profileQuery(
+  profile: ProfileKey,
+  custom?: CustomProfileValues,
+): string {
+  const query = new URLSearchParams({ profile });
+  if (profile === "custom" && custom) {
+    query.set("max_file_size_mb", String(custom.maxFileSizeMb));
+    query.set("max_triangles", String(custom.maxTriangles));
+    query.set("max_texture_resolution", String(custom.maxTextureResolution));
+    query.set(
+      "max_texture_gpu_memory_mib",
+      String(custom.maxTextureGpuMemoryMib),
+    );
+  }
+  return query.toString();
+}
+
 export async function analyzeAsset(
   file: File,
   profile: ProfileKey,
+  custom?: CustomProfileValues,
 ): Promise<AssetReport> {
-  const response = await fetch(`/api/analyze?profile=${profile}`, {
+  const response = await fetch(`/api/analyze?${profileQuery(profile, custom)}`, {
     method: "POST",
     body: uploadBody(file),
   });
@@ -59,8 +78,9 @@ export async function analyzeAsset(
 export async function optimizeAsset(
   file: File,
   profile: ProfileKey,
+  custom?: CustomProfileValues,
 ): Promise<OptimizationResult> {
-  const response = await fetch(`/api/optimize?profile=${profile}`, {
+  const response = await fetch(`/api/optimize?${profileQuery(profile, custom)}`, {
     method: "POST",
     body: uploadBody(file),
   });

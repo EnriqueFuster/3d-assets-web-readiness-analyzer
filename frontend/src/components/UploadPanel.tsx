@@ -1,13 +1,15 @@
 import type { ChangeEvent, DragEvent } from "react";
 
-import type { ProfileKey } from "../types";
+import type { CustomProfileValues, ProfileKey } from "../types";
 
 interface UploadPanelProps {
   file: File | null;
   profile: ProfileKey;
+  customProfile: CustomProfileValues;
   busy: boolean;
   onFileChange: (file: File | null) => void;
   onProfileChange: (profile: ProfileKey) => void;
+  onCustomProfileChange: (profile: CustomProfileValues) => void;
   onAnalyze: () => void;
   onOptimize: () => void;
 }
@@ -15,9 +17,11 @@ interface UploadPanelProps {
 export function UploadPanel({
   file,
   profile,
+  customProfile,
   busy,
   onFileChange,
   onProfileChange,
+  onCustomProfileChange,
   onAnalyze,
   onOptimize,
 }: UploadPanelProps) {
@@ -60,7 +64,7 @@ export function UploadPanel({
 
       <fieldset className="profile-picker">
         <legend>Target profile</legend>
-        {(["mobile", "desktop"] as const).map((key) => (
+        {(["mobile", "desktop", "custom"] as const).map((key) => (
           <label key={key} className={profile === key ? "profile active" : "profile"}>
             <input
               type="radio"
@@ -70,10 +74,26 @@ export function UploadPanel({
               onChange={() => onProfileChange(key)}
             />
             <span>{key}</span>
-            <small>{key === "mobile" ? "Strict delivery and GPU budgets" : "Larger screen and memory budget"}</small>
+            <small>{
+              key === "mobile"
+                ? "Fast delivery for mobile and Web AR"
+                : key === "desktop"
+                  ? "Commerce viewer on desktop and capable devices"
+                  : "Your project's delivery and GPU limits"
+            }</small>
           </label>
         ))}
       </fieldset>
+
+      {profile === "custom" && (
+        <div className="custom-profile" aria-label="Custom profile limits">
+          <label>Maximum GLB (MB)<input type="number" min="0.1" max="25" step="0.1" value={customProfile.maxFileSizeMb} onChange={(event) => onCustomProfileChange({ ...customProfile, maxFileSizeMb: Number(event.target.value) })} /></label>
+          <label>Maximum triangles<input type="number" min="1" max="2000000" value={customProfile.maxTriangles} onChange={(event) => onCustomProfileChange({ ...customProfile, maxTriangles: Number(event.target.value) })} /></label>
+          <label>Maximum texture (px)<input type="number" min="256" max="8192" step="256" value={customProfile.maxTextureResolution} onChange={(event) => onCustomProfileChange({ ...customProfile, maxTextureResolution: Number(event.target.value) })} /></label>
+          <label>Texture memory (MiB)<input type="number" min="1" max="2048" value={customProfile.maxTextureGpuMemoryMib} onChange={(event) => onCustomProfileChange({ ...customProfile, maxTextureGpuMemoryMib: Number(event.target.value) })} /></label>
+          <p>Optimization uses the texture limit directly. The other values evaluate whether the result meets your target.</p>
+        </div>
+      )}
 
       <div className="actions">
         <button className="button primary" disabled={!file || busy} onClick={onAnalyze}>

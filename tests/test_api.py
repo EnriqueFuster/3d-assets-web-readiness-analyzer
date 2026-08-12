@@ -59,7 +59,7 @@ def test_analyze_returns_sanitized_typed_report(
     def fake_analyze(path: Path, report_path: Path, profile: str):
         assert path.name == "input.glb"
         assert path.read_bytes() == b"fake GLB"
-        assert profile == "mobile"
+        assert profile.key == "mobile"
         workspaces.append(path.parent)
         return _report().model_copy(update={"source": str(path)})
 
@@ -93,6 +93,38 @@ def test_analyze_rejects_unknown_profile() -> None:
 
     assert response.status_code == 400
     assert response.json()["detail"]["code"] == "INVALID_REQUEST"
+
+
+def test_analyze_accepts_custom_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def fake_analyze(path: Path, report_path: Path, profile):
+        captured["profile"] = profile
+        return _report().model_copy(update={"profile": profile})
+
+    monkeypatch.setattr(api_module, "analyze_glb", fake_analyze)
+    response = client.post(
+        "/api/analyze?profile=custom&max_file_size_mb=4.5"
+        "&max_triangles=50000&max_texture_resolution=1536"
+        "&max_texture_gpu_memory_mib=96",
+        files={"file": ("product.glb", b"fake GLB", "model/gltf-binary")},
+    )
+
+    assert response.status_code == 200
+    assert captured["profile"].key == "custom"
+    assert captured["profile"].max_file_size_bytes == 4_500_000
+
+
+def test_analyze_requires_every_custom_limit() -> None:
+    response = client.post(
+        "/api/analyze?profile=custom&max_file_size_mb=4",
+        files={"file": ("product.glb", b"fake GLB", "model/gltf-binary")},
+    )
+
+    assert response.status_code == 400
+    assert "All custom profile limits" in response.text
 
 
 def test_analyze_maps_processing_failure_without_leaking_details(
@@ -156,7 +188,7 @@ def test_optimize_returns_zip_and_cleans_workspace(
         profile: str,
     ):
         assert input_path.read_bytes() == b"fake GLB"
-        assert profile == "desktop"
+        assert profile.key == "desktop"
         workspaces.append(input_path.parent)
         optimized_path.write_bytes(b"optimized GLB")
         return compare_reports(

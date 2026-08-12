@@ -31,6 +31,16 @@ describe("App", () => {
     optimizeMock.mockReset();
   });
 
+  it("explains the publishing use case without an acronym mark", () => {
+    render(<App />);
+
+    expect(screen.queryByText("WRA")).not.toBeInTheDocument();
+    expect(screen.getByText(/ecommerce viewer/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/GPU memory and rendering cost are estimates/i),
+    ).toBeInTheDocument();
+  });
+
   it("uploads a GLB, analyzes it, and renders the backend report", async () => {
     analyzeMock.mockResolvedValue(assetReport());
     const user = userEvent.setup();
@@ -39,7 +49,11 @@ describe("App", () => {
     await user.upload(screen.getByLabelText("GLB file"), glbFile());
     await user.click(screen.getByRole("button", { name: "Analyze asset" }));
 
-    expect(analyzeMock).toHaveBeenCalledWith(expect.any(File), "mobile");
+    expect(analyzeMock).toHaveBeenCalledWith(
+      expect.any(File),
+      "mobile",
+      expect.objectContaining({ maxFileSizeMb: 5 }),
+    );
     expect(await screen.findByRole("heading", { name: "Box.glb" })).toBeInTheDocument();
     expect(screen.getByText("Ready for target")).toBeInTheDocument();
   });
@@ -68,10 +82,42 @@ describe("App", () => {
     await user.upload(screen.getByLabelText("GLB file"), glbFile());
     await user.click(screen.getByRole("button", { name: "Analyze + optimize" }));
 
-    expect(optimizeMock).toHaveBeenCalledWith(expect.any(File), "mobile");
+    expect(optimizeMock).toHaveBeenCalledWith(
+      expect.any(File),
+      "mobile",
+      expect.objectContaining({ maxTextureResolution: 2048 }),
+    );
     expect(await screen.findByRole("heading", { name: "Before / after" })).toBeInTheDocument();
     expect(screen.getByText("Original viewer")).toBeInTheDocument();
     expect(screen.getByText("Optimized viewer")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download result ZIP" })).toBeEnabled();
+  });
+
+  it("shows editable limits for a custom target", async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("radio", { name: /custom/i }));
+
+    expect(screen.getByLabelText("Maximum GLB (MB)")).toHaveValue(5);
+    expect(screen.getByText(/Optimization uses the texture limit directly/i)).toBeInTheDocument();
+  });
+
+  it("submits edited custom limits", async () => {
+    analyzeMock.mockResolvedValue(assetReport());
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("radio", { name: /custom/i }));
+    await user.clear(screen.getByLabelText("Maximum GLB (MB)"));
+    await user.type(screen.getByLabelText("Maximum GLB (MB)"), "4.5");
+    await user.upload(screen.getByLabelText("GLB file"), glbFile());
+    await user.click(screen.getByRole("button", { name: "Analyze asset" }));
+
+    expect(analyzeMock).toHaveBeenCalledWith(
+      expect.any(File),
+      "custom",
+      expect.objectContaining({ maxFileSizeMb: 4.5 }),
+    );
   });
 });

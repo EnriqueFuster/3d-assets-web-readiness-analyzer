@@ -29,8 +29,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
   padding: 24px max(24px, calc((100vw - 1180px) / 2));
 }
 
-nav { display: flex; align-items: center; gap: 12px; font-weight: 700; }
-.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--acid); color: var(--acid); font: 500 13px "DM Mono"; }
+nav { font-weight: 700; }
 .hero__content { max-width: 890px; padding: 72px 0 64px; }
 .hero h1 { max-width: 850px; margin: 12px 0 18px; font-size: clamp(2.5rem, 6vw, 5.3rem); line-height: .98; letter-spacing: -.06em; }
 .hero__content > p:last-child { max-width: 650px; color: #b7c2ba; font-size: 1.1rem; line-height: 1.7; }
@@ -45,13 +44,17 @@ nav { display: flex; align-items: center; gap: 12px; font-weight: 700; }
 .drop-zone input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .drop-zone__action { font-weight: 800; }
 .drop-zone__detail { color: var(--muted); font-size: .88rem; }
-.profile-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0; border: 0; }
+.profile-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0; border: 0; }
 .profile-picker legend { margin-bottom: 10px; color: var(--muted); font-size: .8rem; }
 .profile { position: relative; display: grid; gap: 5px; padding: 18px; border: 1px solid var(--line); text-transform: capitalize; }
 .profile.active { border-color: var(--green); box-shadow: inset 4px 0 var(--acid); }
 .profile input { position: absolute; opacity: 0; }
 .profile span { font-weight: 800; }
 .profile small { color: var(--muted); text-transform: none; }
+.custom-profile { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px; padding: 18px; border: 1px solid var(--line); background: #f2f5ef; }
+.custom-profile label { display: grid; gap: 7px; color: var(--muted); font-size: .78rem; }
+.custom-profile input { width: 100%; padding: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.custom-profile p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .button { border: 1px solid var(--ink); padding: 12px 18px; font-weight: 800; transition: transform .15s ease, box-shadow .15s ease; }
 .button:not(:disabled):hover { transform: translateY(-2px); box-shadow: 3px 3px 0 var(--ink); }
@@ -102,7 +105,8 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: .78r
 @media (max-width: 720px) {
   .hero { min-height: 330px; }
   .hero__content { padding: 56px 0; }
-  .profile-picker, .viewer-grid, .finding dl { grid-template-columns: 1fr; }
+  .profile-picker, .custom-profile, .viewer-grid, .finding dl { grid-template-columns: 1fr; }
+  .custom-profile p { grid-column: auto; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .section-heading { align-items: stretch; flex-direction: column; }
   .comparison-row { grid-template-columns: 1.3fr repeat(3, .8fr); font-size: .72rem; }

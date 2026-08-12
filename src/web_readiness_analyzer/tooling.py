@@ -91,6 +91,7 @@ def run_optimizer(
     input_path: Path,
     output_path: Path,
     profile_key: str = DEFAULT_PROFILE_KEY,
+    texture_size: int | None = None,
 ) -> None:
     if not input_path.exists():
         raise FileNotFoundError(f"Input GLB not found: {input_path}")
@@ -101,7 +102,7 @@ def run_optimizer(
     if input_path.resolve() == output_path.resolve():
         raise ValueError("Input and output paths must be different")
 
-    preset = get_optimization_preset(profile_key)
+    preset = get_optimization_preset(profile_key, texture_size)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     npx_executable = "npx.cmd" if os.name == "nt" else "npx"
     _run_tool(
