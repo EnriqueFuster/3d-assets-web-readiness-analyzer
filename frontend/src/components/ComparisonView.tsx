@@ -36,11 +36,6 @@ export function ComparisonView({
           </div>
         ))}
       </div>
-
-      <p className="qa-note">
-        Optimization status: <strong>{report.optimization_status.replaceAll("_", " ")}</strong>.
-        A valid transformation still requires visual review before acceptance.
-      </p>
     </section>
   );
 }

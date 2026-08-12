@@ -99,7 +99,6 @@ model-viewer { display: block; width: 100%; height: 430px; background: radial-gr
 .comparison-row.header { color: var(--muted); font-size: .72rem; text-transform: uppercase; }
 .comparison-row span:not(:first-child) { font-family: "DM Mono"; }
 .improvement { color: #157044; font-weight: 700; }
-.qa-note { margin: 24px 0 0; padding: 16px; background: #edf0eb; color: #47524c; font-size: .88rem; }
 footer { padding: 28px; text-align: center; color: var(--muted); font-size: .78rem; border-top: 1px solid var(--line); }
 
 @media (max-width: 720px) {
