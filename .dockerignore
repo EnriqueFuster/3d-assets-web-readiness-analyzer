@@ -1,0 +1,35 @@
+# Version control and editor state
+.git
+.github
+.vscode
+.idea
+
+# Local environments and installed dependencies
+.venv
+node_modules
+frontend/node_modules
+
+# Generated builds, caches, and temporary files
+frontend/dist
+dist
+build
+tmp
+content
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+*.tsbuildinfo
+*.log
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Development-only material
+tests
+docs
+samples
+scripts
+report.json

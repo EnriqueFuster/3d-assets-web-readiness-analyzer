@@ -87,7 +87,8 @@ Out of scope: scoring, recommendations, optimization, API, frontend, and Docker.
 - [x] Before/after GLB viewers and metric comparison.
 - [x] Optimized asset and comparison ZIP download.
 - [x] Add focused frontend interaction tests for analysis, errors, and optimization.
-- [ ] Package the full application with Docker.
+- [x] Package the full application with a multistage Docker build and health check.
+- [x] Verify analysis and optimization with a real GLB inside the container.
 - [ ] Run backend and frontend quality gates in CI.
 - [ ] Deploy the public demo and complete the README case study.
 

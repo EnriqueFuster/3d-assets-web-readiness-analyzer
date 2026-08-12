@@ -3,6 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import web_readiness_analyzer.api as api_module
@@ -16,10 +17,38 @@ client = TestClient(api_module.app)
 
 
 def test_health() -> None:
-    response = client.get("/health")
+    response = client.get("/api/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_mount_frontend_serves_built_index(tmp_path: Path) -> None:
+    frontend_dist = tmp_path / "dist"
+    frontend_dist.mkdir()
+    (frontend_dist / "index.html").write_text(
+        '<div id="root">frontend</div>',
+        encoding="utf-8",
+    )
+    application = FastAPI()
+
+    mounted = api_module.mount_frontend(application, frontend_dist)
+    response = TestClient(application).get("/")
+
+    assert mounted is True
+    assert response.status_code == 200
+    assert '<div id="root">frontend</div>' in response.text
+
+
+def test_mount_frontend_skips_missing_build(tmp_path: Path) -> None:
+    application = FastAPI()
+
+    mounted = api_module.mount_frontend(
+        application,
+        tmp_path / "missing-dist",
+    )
+
+    assert mounted is False
 
 
 def test_analyze_returns_sanitized_typed_report(
@@ -37,7 +66,7 @@ def test_analyze_returns_sanitized_typed_report(
     monkeypatch.setattr(api_module, "analyze_glb", fake_analyze)
 
     response = client.post(
-        "/analyze?profile=mobile",
+        "/api/analyze?profile=mobile",
         files={"file": ("../../product.glb", b"fake GLB", "model/gltf-binary")},
     )
 
@@ -48,7 +77,7 @@ def test_analyze_returns_sanitized_typed_report(
 
 def test_analyze_rejects_invalid_extension() -> None:
     response = client.post(
-        "/analyze",
+        "/api/analyze",
         files={"file": ("product.txt", b"not a GLB", "text/plain")},
     )
 
@@ -58,7 +87,7 @@ def test_analyze_rejects_invalid_extension() -> None:
 
 def test_analyze_rejects_unknown_profile() -> None:
     response = client.post(
-        "/analyze?profile=console",
+        "/api/analyze?profile=console",
         files={"file": ("product.glb", b"fake GLB", "model/gltf-binary")},
     )
 
@@ -74,7 +103,7 @@ def test_analyze_maps_processing_failure_without_leaking_details(
 
     monkeypatch.setattr(api_module, "analyze_glb", fail_processing)
     response = client.post(
-        "/analyze",
+        "/api/analyze",
         files={"file": ("product.glb", b"broken GLB", "model/gltf-binary")},
     )
 
@@ -107,7 +136,7 @@ def test_analyze_maps_oversized_upload_to_413(
 
     monkeypatch.setattr(api_module, "save_glb_upload", reject_upload)
     response = client.post(
-        "/analyze",
+        "/api/analyze",
         files={"file": ("product.glb", b"large", "model/gltf-binary")},
     )
 
@@ -137,7 +166,7 @@ def test_optimize_returns_zip_and_cleans_workspace(
 
     monkeypatch.setattr(api_module, "optimize_glb", fake_optimize)
     response = client.post(
-        "/optimize?profile=desktop",
+        "/api/optimize?profile=desktop",
         files={"file": ("product.glb", b"fake GLB", "model/gltf-binary")},
     )
 

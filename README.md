@@ -57,7 +57,7 @@ Deferred ideas live in [future.md](future.md).
 
 ## Current status
 
-**Slice 4 complete — API for profile-aware analysis and optimization.** The CLI and HTTP API validate, inspect, optimize, revalidate, and compare a GLB against mobile or desktop targets.
+**The local visual product is complete and reproducible with Docker.** The CLI, HTTP API, and React interface validate, inspect, optimize, revalidate, and compare a GLB against mobile or desktop targets. CI and public deployment remain pending.
 
 The core pipeline exposes:
 
@@ -65,7 +65,7 @@ The core pipeline exposes:
 report = analyze_glb(path, output_path, profile_key="mobile")
 ```
 
-It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. The visual interface remains the next slice.
+It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. The React interface exposes the same pipeline through file upload, 3D previews, comparison, and download.
 
 ## HTTP API
 
@@ -80,9 +80,9 @@ Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
 
 The API exposes:
 
-- `GET /health` for service health checks.
-- `POST /analyze?profile=mobile` with a multipart `file` field. It returns an `AssetReport` as JSON.
-- `POST /optimize?profile=mobile` with a multipart `file` field. It returns a ZIP containing `optimized.glb` and `comparison.json`.
+- `GET /api/health` for service health checks.
+- `POST /api/analyze?profile=mobile` with a multipart `file` field. It returns an `AssetReport` as JSON.
+- `POST /api/optimize?profile=mobile` with a multipart `file` field. It returns a ZIP containing `optimized.glb` and `comparison.json`.
 
 `desktop` is also accepted as a profile. Uploads must have a `.glb` extension and are limited to 25 MiB. Each request uses an isolated temporary workspace that is removed after the response is built. Structured API errors use HTTP 400 for invalid input, 413 for an oversized upload, and 422 when a GLB cannot be processed.
 
@@ -122,6 +122,41 @@ npm.cmd test
 ```
 
 Vitest and React Testing Library cover the browser-facing contract: submitting a GLB for analysis, presenting API failures, and exposing comparison and download controls after optimization. The Python suite remains responsible for the analyzer, rules, subprocess orchestration, and HTTP API behavior.
+
+## Docker
+
+Docker packages Python, Node, the pinned glTF tools, FastAPI, and the compiled React interface into one reproducible image. Docker Desktop with its Linux engine must be running.
+
+Build and start the complete application:
+
+```powershell
+docker compose up --build
+```
+
+Open `http://127.0.0.1:8000`. The same container serves:
+
+```text
+/                  compiled React application
+/docs              interactive OpenAPI documentation
+/api/health        container health endpoint
+/api/analyze       GLB analysis
+/api/optimize      optimization ZIP
+```
+
+Check its state and logs:
+
+```powershell
+docker compose ps
+docker compose logs app
+```
+
+Stop and remove the local container and network:
+
+```powershell
+docker compose down
+```
+
+The multistage `Dockerfile` compiles React separately, installs the pinned Node tooling separately, and copies only their runtime outputs into the final Python image. Uploads remain ephemeral and are processed in per-request temporary directories inside the container.
 
 ## Analyzer CLI
 

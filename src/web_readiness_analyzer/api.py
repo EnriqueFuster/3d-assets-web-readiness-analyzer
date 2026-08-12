@@ -4,8 +4,9 @@ from tempfile import TemporaryDirectory
 from typing import BinaryIO, Never
 from zipfile import ZIP_DEFLATED, ZipFile
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
 
 from web_readiness_analyzer.models import AssetReport, ComparisonReport
 from web_readiness_analyzer.pipeline import analyze_glb, optimize_glb
@@ -14,6 +15,8 @@ from web_readiness_analyzer.rules import DEFAULT_PROFILE_KEY, get_profile
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 COPY_CHUNK_BYTES = 1024 * 1024
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FRONTEND_DIST = PROJECT_ROOT / "frontend" / "dist"
 
 
 class UploadTooLargeError(ValueError):
@@ -91,14 +94,15 @@ app = FastAPI(
     title="3D Web Readiness Analyzer",
     version="0.3.0",
 )
+api_router = APIRouter(prefix="/api")
 
 
-@app.get("/health")
+@api_router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/analyze", response_model=AssetReport)
+@api_router.post("/analyze", response_model=AssetReport)
 def analyze_asset(
     file: UploadFile = File(...),
     profile: str = Query(DEFAULT_PROFILE_KEY),
@@ -125,7 +129,7 @@ def analyze_asset(
         _raise_http_error(error)
 
 
-@app.post("/optimize")
+@api_router.post("/optimize")
 def optimize_asset(
     file: UploadFile = File(...),
     profile: str = Query(DEFAULT_PROFILE_KEY),
@@ -170,3 +174,20 @@ def optimize_asset(
         )
     except (OSError, RuntimeError, SubprocessError, ValueError) as error:
         _raise_http_error(error)
+
+
+app.include_router(api_router)
+
+
+def mount_frontend(application: FastAPI, directory: Path) -> bool:
+    if not directory.is_dir():
+        return False
+    application.mount(
+        "/",
+        StaticFiles(directory=directory, html=True),
+        name="frontend",
+    )
+    return True
+
+
+mount_frontend(app, FRONTEND_DIST)

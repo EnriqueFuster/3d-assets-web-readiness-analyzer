@@ -1,0 +1,9 @@
+services:
+  app:
+    image: web-readiness-analyzer:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    ports:
+      - "8000:8000"
