@@ -1,6 +1,6 @@
-# Day 0 baseline
+# Reference asset baseline
 
-This document records the original state of each input before application code or optimization exists. Generated JSON reports will replace manual transcription once Slice 1 is complete.
+This document records the original state of each input before optimization. The baseline provides stable reference values for regression tests and before/after comparisons.
 
 ## Measurement rules
 
@@ -90,4 +90,4 @@ Materials Variants Shoe requires tangent space for its normal-mapped material bu
 
 ## Baseline interpretation
 
-Day 0 does not assign pass/fail status. Thresholds and target profiles belong to Slice 2. The measurements captured here establish reproducible inputs and expose what the selected tools can actually report.
+The baseline does not assign pass/fail status. Measurements establish reproducible inputs; target profiles apply contextual thresholds separately.

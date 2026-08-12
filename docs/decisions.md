@@ -4,7 +4,7 @@
 
 **Status:** accepted on 2026-08-08
 
-**Decision:** Python owns domain models, orchestration, rules, comparisons, and the future API. Khronos glTF Validator and glTF Transform provide validation, inspection, and optimization through subprocess boundaries.
+**Decision:** Python owns domain models, orchestration, rules, comparisons, and the HTTP API. Khronos glTF Validator and glTF Transform provide validation, inspection, and optimization through subprocess boundaries.
 
 **Reason:** These tools encode specialist glTF behavior that should not be reimplemented. The boundary also gives the Python layer stable, testable input and output contracts.
 
@@ -46,7 +46,7 @@
 
 **Decision:** Keep glTF Transform at `4.3.0` and override its transitive `sharp` dependency to `0.35.0`. Verify all baseline fixtures after the override and require a clean `npm audit`.
 
-**Reason:** The bundled older Sharp/libvips version has high-severity advisories involving crafted images. This matters for the future public upload boundary even though Day 0 inputs are trusted.
+**Reason:** The bundled older Sharp/libvips version has high-severity advisories involving crafted images. This matters because the application accepts public uploads.
 
 **Trade-off:** The override is outside glTF Transform's published dependency resolution and therefore needs regression tests. It can be removed when upstream adopts a safe version.
 

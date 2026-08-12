@@ -1,242 +1,184 @@
 # 3D Web Readiness Analyzer
 
-A diagnostic and optimization tool for assessing whether GLB product assets are suitable for real-time web experiences.
+[![CI](https://github.com/EnriqueFuster/3d-assets-web-readiness-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/EnriqueFuster/3d-assets-web-readiness-analyzer/actions/workflows/ci.yml)
 
-## Problem
+Diagnose and optimize GLB product assets for real-time web delivery.
 
-Assets authored for CAD, offline rendering, Blender, or marketing are not automatically suitable for browsers, mobile devices, ecommerce viewers, or configurators. File size, decoded texture memory, geometry, material complexity, and glTF validation issues affect different parts of the delivery and rendering pipeline.
+**Live demo:** [threed-assets-web-readiness-analyzer.onrender.com](https://threed-assets-web-readiness-analyzer.onrender.com/)
 
-This project turns those signals into an explainable report, actionable recommendations, and a measurable before/after optimization workflow.
+Assets prepared for CAD, offline rendering, or marketing are not automatically suitable for ecommerce viewers and configurators. Transfer size, geometry, decoded texture memory, material complexity, and glTF validation issues affect different parts of the delivery and rendering pipeline. This project combines those signals into an explainable, target-specific report and a measurable optimization workflow.
 
-## Product principle
+## Capabilities
 
-"Web-ready" is contextual, not a universal pass/fail property. Reports will always identify the target profile and distinguish measured facts from heuristic recommendations.
+- Validate GLB integrity with Khronos glTF Validator.
+- Inspect geometry, materials, textures, extensions, and render-complexity proxies.
+- Evaluate assets against explicit mobile and desktop budgets.
+- Explain every finding with its metric, threshold, rationale, and recommendation.
+- Optimize a copy of the asset, revalidate it, and compare before/after metrics.
+- Preview original and optimized models and download the optimized GLB with its report.
+- Use the same pipeline through the browser, HTTP API, or Python scripts.
 
-The analyzer will evaluate four dimensions:
+"Web-ready" is treated as contextual rather than a universal score. Measured facts remain separate from heuristic recommendations, and every report identifies its target profile.
 
-1. **Integrity** — specification compliance and loadability.
-2. **Transfer** — bytes delivered over the network.
-3. **GPU cost** — geometry and estimated decoded texture memory.
-4. **Render complexity** — primitives, materials, and other draw-call proxies.
-
-## V1 workflow
+## How it works
 
 ```text
-Upload GLB
-  -> validate and inspect
-  -> explain risks and recommendations
-  -> optimize
-  -> revalidate
-  -> compare metrics and visual result
-  -> download optimized GLB
+GLB upload
+  -> validation and static inspection
+  -> profile-aware findings
+  -> optimization of a separate copy
+  -> revalidation and metric comparison
+  -> visual review and download
 ```
 
-## Definition of Done
+Python owns the domain models, rules, orchestration, comparison, and FastAPI boundary. Khronos glTF Validator and glTF Transform provide specialist validation, inspection, and optimization through subprocess contracts. The React application presents the resulting API and renders GLB previews in the browser.
 
-- Upload one GLB.
-- Return structured metrics and glTF validation issues.
-- Generate explainable, profile-aware recommendations.
-- Optimize and revalidate the output.
-- Compare before/after metrics.
-- Inspect both assets visually.
-- Download the optimized GLB.
-- Cover the core pipeline with tests.
-- Run reproducibly with Docker and CI.
-- Publish a demo, technical case study, and demo footage.
+## Run with Docker
 
-## Out of scope
-
-- Authentication, user accounts, subscriptions, and payments.
-- Database persistence and batch processing.
-- Multi-user or job-queue infrastructure.
-- CAD ingestion and Blender cloud rendering.
-- AI-generated recommendations or chat interfaces.
-- Claims of a universal industry-standard score.
-
-Deferred ideas live in [future.md](future.md).
-
-## Current status
-
-**The local visual product is complete and reproducible with Docker.** The CLI, HTTP API, and React interface validate, inspect, optimize, revalidate, and compare a GLB against mobile or desktop targets. CI and public deployment remain pending.
-
-The core pipeline exposes:
-
-```python
-report = analyze_glb(path, output_path, profile_key="mobile")
-```
-
-It returns a structured JSON report with measurements, validation issues, the selected profile, and actionable findings. The React interface exposes the same pipeline through file upload, 3D previews, comparison, and download.
-
-## HTTP API
-
-Install the project and development dependencies, then start the API:
-
-```powershell
-python -m pip install -e . --group dev
-python -m uvicorn web_readiness_analyzer.api:app --reload
-```
-
-Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
-
-The API exposes:
-
-- `GET /api/health` for service health checks.
-- `POST /api/analyze?profile=mobile` with a multipart `file` field. It returns an `AssetReport` as JSON.
-- `POST /api/optimize?profile=mobile` with a multipart `file` field. It returns a ZIP containing `optimized.glb` and `comparison.json`.
-
-`desktop` is also accepted as a profile. Uploads must have a `.glb` extension and are limited to 25 MiB. Each request uses an isolated temporary workspace that is removed after the response is built. Structured API errors use HTTP 400 for invalid input, 413 for an oversized upload, and 422 when a GLB cannot be processed.
-
-The 25 MiB check is enforced while the application copies the uploaded file. A public deployment must also configure a request-body limit at its reverse proxy or hosting edge so oversized bodies are rejected before reaching the application.
-
-## React frontend
-
-The browser interface is a separate React, TypeScript, and Vite application in `frontend/`. Run the API in one terminal:
-
-```powershell
-python -m uvicorn web_readiness_analyzer.api:app --reload
-```
-
-Then install and run the frontend in another terminal:
-
-```powershell
-cd frontend
-npm.cmd install
-npm.cmd run dev
-```
-
-Open `http://127.0.0.1:5173`. The Vite development server proxies `/api/*` requests to FastAPI at `http://127.0.0.1:8000`, so the browser interface and backend remain separate without development-only CORS configuration.
-
-The interface supports GLB drag-and-drop, mobile/desktop profiles, structured analysis results, original/optimized 3D previews, before/after metrics, and ZIP download. Create a production build with:
-
-```powershell
-npm.cmd run build
-```
-
-The generated static site is written to `frontend/dist/` and is not committed.
-
-Run the focused frontend interaction tests with:
-
-```powershell
-cd frontend
-npm.cmd test
-```
-
-Vitest and React Testing Library cover the browser-facing contract: submitting a GLB for analysis, presenting API failures, and exposing comparison and download controls after optimization. The Python suite remains responsible for the analyzer, rules, subprocess orchestration, and HTTP API behavior.
-
-## Docker
-
-Docker packages Python, Node, the pinned glTF tools, FastAPI, and the compiled React interface into one reproducible image. Docker Desktop with its Linux engine must be running.
-
-Build and start the complete application:
+Docker is the shortest path to the complete application. With Docker Desktop running:
 
 ```powershell
 docker compose up --build
 ```
 
-Open `http://127.0.0.1:8000`. The same container serves:
-
-```text
-/                  compiled React application
-/docs              interactive OpenAPI documentation
-/api/health        container health endpoint
-/api/analyze       GLB analysis
-/api/optimize      optimization ZIP
-```
-
-Check its state and logs:
-
-```powershell
-docker compose ps
-docker compose logs app
-```
-
-Stop and remove the local container and network:
+Open `http://127.0.0.1:8000`. Stop the application with:
 
 ```powershell
 docker compose down
 ```
 
-The multistage `Dockerfile` compiles React separately, installs the pinned Node tooling separately, and copies only their runtime outputs into the final Python image. Uploads remain ephemeral and are processed in per-request temporary directories inside the container.
+The multistage image builds the React frontend, installs the pinned glTF tools, and packages them with the Python application. Uploaded assets are processed in isolated temporary directories and are not persisted.
 
-## Continuous integration
+## Local development
 
-GitHub Actions runs two independent quality gates on every push and pull request:
+Requirements:
 
-```text
-Backend   Python 3.13 + Node 24 → npm ci → pytest
-Frontend  Node 24 → npm ci → Vitest → production build
+- Python 3.13
+- Node.js 24
+
+Install the backend and development dependencies from the repository root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e . --group dev
+npm.cmd ci
 ```
 
-The workflow lives in `.github/workflows/ci.yml`. It uses clean Linux runners, lockfile-based Node installations, cached dependency downloads, and read-only repository permissions. A passing run demonstrates that the Python pipeline and React interface can be installed and verified without relying on the local development environment.
+Start FastAPI:
 
-## Analyzer CLI
+```powershell
+python -m uvicorn web_readiness_analyzer.api:app --reload
+```
+
+In another terminal, start the frontend:
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+The frontend is available at `http://127.0.0.1:5173`; Vite proxies `/api/*` to FastAPI during development.
+
+## HTTP API
+
+Interactive OpenAPI documentation is available at `/docs` while the API is running.
+
+| Method | Endpoint | Result |
+| --- | --- | --- |
+| `GET` | `/api/health` | Service status |
+| `POST` | `/api/analyze?profile=mobile` | Structured `AssetReport` JSON |
+| `POST` | `/api/optimize?profile=mobile` | ZIP with `optimized.glb` and `comparison.json` |
+
+Both POST endpoints accept a multipart `file` field. Supported profiles are `mobile` and `desktop`; uploads must use the `.glb` extension and are limited to 25 MiB.
+
+Before invoking external tooling, the backend verifies the GLB container header, version, and declared byte length. Validator, inspector, and optimizer processes share a 120-second deadline and expose controlled API errors instead of running indefinitely or leaking internal paths.
+
+## Command-line workflow
+
+Analyze an asset:
 
 ```powershell
 python .\scripts\analyze_glb.py input.glb report.json mobile
-python .\scripts\analyze_glb.py input.glb report.json desktop
 ```
 
-The optional profile defaults to `mobile`. Current profile budgets are deliberately contextual:
+Optimize and compare it:
+
+```powershell
+python .\scripts\optimize_glb.py input.glb optimized.glb comparison.json --profile mobile
+```
+
+Record the required visual review:
+
+```powershell
+python .\scripts\review_optimization.py comparison.json --passed --notes "No visible regressions."
+```
+
+Optimization acceptance and target readiness are deliberately separate:
+
+- `optimization_status` records whether the transformation remains valid and passes visual review.
+- `readiness.after_ready` records whether the result satisfies the selected profile without remaining findings.
+
+## Target profiles
 
 | Profile | GLB bytes | Triangles | Max texture dimension | Estimated texture GPU memory |
 | --- | ---: | ---: | ---: | ---: |
 | `mobile` | 3,000,000 | 30,000 | 1,024 px | 64 MiB |
 | `desktop` | 5,000,000 | 100,000 | 2,048 px | 128 MiB |
 
-File-size, triangle, and texture-resolution budgets are informed by Khronos publishing guidance and its Web AR audit-profile example. GPU-memory budgets are project heuristics, not universal standards. Static inspection does not replace testing on representative browsers and devices.
+File-size, triangle, and texture-resolution budgets are informed by Khronos publishing guidance and its Web AR audit-profile example. GPU-memory budgets are project heuristics. Static inspection does not replace testing on representative browsers and devices.
 
-## Optimization and comparison
+## Reference result
+
+The BoomBox fixture demonstrates why optimization quality and target readiness are different decisions.
+
+| Profile | Original | Optimized | Transfer reduction | Result |
+| --- | ---: | ---: | ---: | --- |
+| Mobile | 10.61 MB | 2.14 MB | 79.81% | Automated budgets pass; visual review pending |
+| Desktop | 10.61 MB | 8.52 MB | 19.72% | Visual review passes; desktop transfer budget remains exceeded |
+
+The desktop comparison preserves the model's appearance in a deterministic reference render while remaining honest about the unresolved transfer-size finding. The supporting protocol and captures are documented in [docs/visual-qa.md](docs/visual-qa.md).
+
+## Verification
+
+Run the backend suite:
 
 ```powershell
-python .\scripts\optimize_glb.py input.glb optimized.glb comparison.json --profile mobile
+python -m pytest -v
 ```
 
-The pipeline analyzes the source, optimizes a separate copy, revalidates it, and records before/after metrics. A result with new validation errors is rejected. Otherwise it remains `pending_visual_qa` until a visual review is recorded:
+Run frontend tests and create a production build:
 
 ```powershell
-python .\scripts\review_optimization.py comparison.json --passed --notes "No visible regressions."
+cd frontend
+npm.cmd test
+npm.cmd run build
 ```
 
-Optimization acceptance and profile readiness are separate decisions:
+GitHub Actions runs backend and frontend jobs independently on pushes and pull requests. The workflow installs dependencies from lockfiles, executes the test suites, and verifies the frontend production build on clean Linux runners.
 
-- `optimization_status` describes validity and visual QA of the transformation.
-- `readiness.after_ready` describes whether the optimized result has no validation errors and no remaining findings for the selected profile.
-
-| Preset | Max texture dimension | Texture encoding | Geometry compression |
-| --- | ---: | --- | --- |
-| `mobile` | 1,024 px | Preserve/recompress automatically | Meshopt high |
-| `desktop` | 2,048 px | Preserve/recompress automatically | Meshopt high |
-
-For BoomBox, the mobile preset reduced transfer size from 10,614,184 to 2,142,516 bytes (79.81%), reduced estimated decoded texture memory from 89,478,480 to 22,369,616 bytes, and resolved all mobile findings. It is `pending_visual_qa` because resizing textures requires a new visual review.
-
-The desktop preset reduced transfer size to 8,521,416 bytes (19.72%) without reducing texture resolution. Its transformation is `accepted` after deterministic visual QA, while `readiness.after_ready` remains false because the 5 MB desktop transfer budget is still exceeded. This distinction prevents an acceptable transformation from being mislabeled as profile-compliant.
-
-## Planned releases
-
-- **v0.1 — Analyzer CLI:** GLB to structured JSON report.
-- **v0.2 — Optimization pipeline:** analyze, optimize, reanalyze, compare.
-- **v0.3 — API:** file upload and safe temporary-file handling.
-- **v1.0 — Visual product:** viewer, comparison, download, deployment.
-
-## Repository map
+## Project structure
 
 ```text
-docs/       decisions, baseline, and development log
+src/        Python package: models, rules, pipeline, comparison, and API
+scripts/    Command-line entry points and tool adapters
 frontend/   React, TypeScript, Vite, and the browser interface
-samples/    licensed GLB fixtures and provenance
-src/        typed domain models, rules, comparison, and QA policy
-scripts/    command-line orchestration
-tests/      unit and orchestration tests
+tests/      Backend unit, contract, orchestration, and QA tests
+docs/       Architecture decisions, baseline data, and visual-QA protocol
+samples/    Licensed GLB fixtures, provenance, and reproducible evidence
 ```
 
-The frontend remains independently buildable from the Python backend so each layer has a clear responsibility and deployment boundary.
+## Limitations
 
-## Sample assets
+- Readiness profiles are documented heuristics, not universal industry standards.
+- Texture GPU memory is estimated from static asset data rather than measured on a device.
+- Material and primitive counts are render-complexity proxies, not observed draw calls.
+- Visual acceptance remains a human decision; deterministic image comparison is supporting evidence.
+- The public demo uses a free Render instance and may take about a minute to wake after being idle.
 
-Sample files are sourced from the Khronos glTF Sample Assets repository. See [samples/README.md](samples/README.md) for source URLs, licenses, intended test roles, and checksums. Sample licensing is independent from this project's source-code license.
+## Sample assets and license
 
-## Technical direction
+The fixtures come from the Khronos glTF Sample Assets repository and retain their upstream licenses. Sources, attribution, intended test roles, and checksums are recorded in [samples/README.md](samples/README.md).
 
-Python owns the domain model, orchestration, heuristics, comparisons, and FastAPI layer. Khronos glTF Validator and glTF Transform provide specialized validation, inspection, and optimization instead of being reimplemented.
-
-Exact tool versions will be recorded with generated reports. JavaScript tooling will be installed locally and invoked with `npm.cmd`/`npx.cmd` on Windows; no global installation or PowerShell policy change is required.
+Project source code is available under the [MIT License](LICENSE).
