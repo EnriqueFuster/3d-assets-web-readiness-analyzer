@@ -2,36 +2,67 @@
 
 [![CI](https://github.com/EnriqueFuster/3d-assets-web-readiness-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/EnriqueFuster/3d-assets-web-readiness-analyzer/actions/workflows/ci.yml)
 
-Diagnose and optimize GLB product assets for real-time web delivery.
+An end-to-end diagnostic and optimization pipeline for publishing GLB product assets to ecommerce viewers, configurators, mobile experiences, and Web AR.
 
 **Live demo:** [threed-assets-web-readiness-analyzer.onrender.com](https://threed-assets-web-readiness-analyzer.onrender.com/)
 
-Assets prepared for CAD, offline rendering, or marketing are not automatically suitable for ecommerce viewers and configurators. Transfer size, geometry, decoded texture memory, material complexity, and glTF validation issues affect different parts of the delivery and rendering pipeline. This project combines those signals into an explainable, target-specific report and a measurable optimization workflow.
+Assets prepared for CAD, offline rendering, or marketing are not automatically suitable for real-time delivery. A model can be valid glTF and still download slowly, exceed a mobile GPU budget, or contain textures and geometry that are unnecessarily expensive at runtime.
 
-## Capabilities
+The analyzer answers a practical publishing question:
+
+> Is this GLB suitable for its intended web target, what is putting that target at risk, and what changed after optimization?
+
+It combines specification validation, static inspection, profile-aware rules, non-destructive optimization, and before/after evidence in a single workflow. Results are available through a browser interface, typed HTTP API, and Python command-line tools.
+
+## Product workflow
+
+```text
+Upload a GLB and select a target
+                  │
+                  ▼
+        Validate glTF integrity
+                  │
+                  ▼
+ Inspect transfer, geometry, textures,
+ materials, extensions, and GPU estimates
+                  │
+                  ▼
+ Explain findings against mobile, desktop,
+          or user-defined budgets
+                  │
+          ┌───────┴────────┐
+          │                │
+       Analyze          Optimize copy
+          │                │
+          │         Revalidate + re-inspect
+          │                │
+          └───────┬────────┘
+                  ▼
+      Compare, preview, and download
+```
+
+The output is designed to support a decision rather than produce an opaque score. It reports measured values, the selected thresholds, why each excess matters, and a concrete recommendation.
+
+## What the report provides
 
 - Validate GLB integrity with Khronos glTF Validator.
 - Inspect geometry, materials, textures, extensions, and render-complexity proxies.
-- Evaluate assets against explicit mobile and desktop budgets.
+- Evaluate assets against mobile, desktop, or custom project budgets.
 - Explain every finding with its metric, threshold, rationale, and recommendation.
 - Optimize a copy of the asset, revalidate it, and compare before/after metrics.
 - Preview original and optimized models and download the optimized GLB with its report.
 - Use the same pipeline through the browser, HTTP API, or Python scripts.
+- Distinguish a valid optimization from an asset that actually meets its delivery target.
 
-"Web-ready" is treated as contextual rather than a universal score. Measured facts remain separate from heuristic recommendations, and every report identifies its target profile.
+"Web-ready" is contextual rather than a universal pass/fail property. A mobile AR experience and a desktop product viewer do not have the same constraints, so every judgment remains tied to an explicit profile.
 
-## How it works
+## Example outcome
 
-```text
-GLB upload
-  -> validation and static inspection
-  -> profile-aware findings
-  -> optimization of a separate copy
-  -> revalidation and metric comparison
-  -> visual review and download
-```
+For the committed BoomBox reference asset, the mobile preset reduced transfer size from **10.61 MB to 2.14 MB (79.81%)** and estimated decoded texture memory from **89.48 MB to 22.37 MB**. The automated mobile findings were resolved, while visual acceptance remained a separate decision because texture resolution changed.
 
-Python owns the domain models, rules, orchestration, comparison, and FastAPI boundary. Khronos glTF Validator and glTF Transform provide specialist validation, inspection, and optimization through subprocess contracts. The React application presents the resulting API and renders GLB previews in the browser.
+The desktop preset produced a smaller but visually reviewed transformation: **8.52 MB (19.72% reduction)**. It remained above the desktop transfer budget, demonstrating why “optimization succeeded” and “target ready” are intentionally different states.
+
+The committed [mobile comparison](samples/reports/BoomBox/optimization-comparison.json), [desktop comparison](samples/reports/BoomBox/desktop-optimization-comparison.json), and deterministic renders make the result reproducible rather than anecdotal.
 
 ## Run with Docker
 
@@ -48,6 +79,44 @@ docker compose down
 ```
 
 The multistage image builds the React frontend, installs the pinned glTF tools, and packages them with the Python application. Uploaded assets are processed in isolated temporary directories and are not persisted.
+
+## System design
+
+```text
+Browser
+  React + TypeScript + <model-viewer>
+            │ fetch / multipart HTTP
+            ▼
+Web boundary
+  Uvicorn → FastAPI → Pydantic contracts
+            │ application calls
+            ▼
+Python domain and orchestration
+  profiles → rules → reports → comparison
+            │ subprocess boundary
+            ▼
+Specialist glTF tooling
+  Khronos Validator + glTF Transform + Meshopt
+```
+
+| Layer | Responsibility |
+| --- | --- |
+| React and TypeScript | File selection, target configuration, API calls, result state, previews, and downloads |
+| FastAPI and Pydantic | HTTP contract, input validation, typed responses, upload limits, and controlled errors |
+| Python domain | Profiles, explainable rules, report construction, orchestration, and before/after comparison |
+| Node.js tool adapters | Stable subprocess contracts around validation, inspection, and optimization |
+| Docker | Reproducible Python, Node, glTF tooling, and compiled frontend runtime |
+
+Node.js is used as a runtime for the glTF command-line tooling, not as a second web backend. Python remains the owner of application behavior and calls those tools through bounded subprocesses.
+
+## Engineering decisions
+
+- **Integrate specialist tooling instead of reimplementing glTF.** Khronos Validator owns specification conformance; glTF Transform owns inspection and optimization primitives. The project adds orchestration, policies, explainability, comparison, and delivery interfaces.
+- **Keep measurements separate from heuristics.** File bytes and triangle counts are facts; decoded texture memory and render cost are estimates. Reports label the distinction and preserve the threshold source.
+- **Optimize a copy and revalidate it.** The source is never overwritten, and a smaller result is not accepted if it introduces a validity regression.
+- **Separate transformation quality from target readiness.** An optimization may be valid and visually acceptable while still exceeding the selected budget.
+- **Treat uploads as untrusted input.** The API checks extension, upload size, GLB header, version, and declared length; each request receives an isolated temporary workspace and every external process has a deadline.
+- **Keep the pipeline interface-independent.** Browser, API, and scripts use the same Python behavior rather than implementing separate analysis rules.
 
 ## Local development
 
@@ -141,7 +210,9 @@ The BoomBox fixture demonstrates why optimization quality and target readiness a
 | Mobile | 10.61 MB | 2.14 MB | 79.81% | Automated budgets pass; visual review pending |
 | Desktop | 10.61 MB | 8.52 MB | 19.72% | Visual review passes; desktop transfer budget remains exceeded |
 
-The desktop comparison preserves the model's appearance in a deterministic reference render while remaining honest about the unresolved transfer-size finding. The supporting protocol and captures are documented in [docs/visual-qa.md](docs/visual-qa.md).
+The desktop comparison preserves the model's appearance while remaining honest about the unresolved transfer-size finding. Original and optimized assets were rendered with Three.js 0.185.1 using the same camera, lighting, background, viewport, tone mapping, and pixel ratio. Review covered silhouette, materials, labels, grille, controls, handle, and antenna; no visible regression was found. Pixel differences were limited to rasterization edges and are treated as supporting evidence, not proof of equivalence across every view or device.
+
+Visual evidence: [original render](samples/reports/BoomBox/visual-qa/original.png) and [optimized render](samples/reports/BoomBox/visual-qa/optimized.png).
 
 ## Verification
 
@@ -167,8 +238,7 @@ GitHub Actions runs backend and frontend jobs independently on pushes and pull r
 src/        Python package: models, rules, pipeline, comparison, and API
 scripts/    Command-line entry points and tool adapters
 frontend/   React, TypeScript, Vite, and the browser interface
-tests/      Backend unit, contract, orchestration, and QA tests
-docs/       Architecture decisions, baseline data, and visual-QA protocol
+tests/      Backend unit, contract, orchestration, and visual-review tests
 samples/    Licensed GLB fixtures, provenance, and reproducible evidence
 ```
 
