@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -79,8 +80,9 @@ def test_runs_profile_specific_optimizer_command(
     run_optimizer(input_path, output_path, profile_key)
 
     assert output_path.parent.exists()
+    expected_npx = "npx.cmd" if os.name == "nt" else "npx"
     assert captured["command"] == [
-        "npx.cmd",
+        expected_npx,
         "gltf-transform",
         "optimize",
         str(input_path),
