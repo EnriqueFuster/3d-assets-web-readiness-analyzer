@@ -67,10 +67,25 @@ def test_runs_profile_specific_optimizer_command(
     output_path = tmp_path / "derived" / "optimized.glb"
     captured: dict = {}
 
-    def fake_run(command: list[str], *, cwd: Path, check: bool) -> None:
+    class Result:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def fake_run(
+        command: list[str],
+        *,
+        cwd: Path,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+        timeout: int,
+    ) -> Result:
         captured["command"] = command
         captured["cwd"] = cwd
         captured["check"] = check
+        captured["timeout"] = timeout
+        return Result()
 
     monkeypatch.setattr(
         "web_readiness_analyzer.tooling.subprocess.run",
@@ -97,7 +112,8 @@ def test_runs_profile_specific_optimizer_command(
         "high",
     ]
     assert captured["cwd"].name == "3d-assets-web-readiness-analyzer"
-    assert captured["check"] is True
+    assert captured["check"] is False
+    assert captured["timeout"] == 120
 
 
 def test_rejects_unknown_optimization_profile(tmp_path: Path) -> None:

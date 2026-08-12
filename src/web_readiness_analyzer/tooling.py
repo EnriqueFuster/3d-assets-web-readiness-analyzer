@@ -1,9 +1,13 @@
 import json
+import logging
 import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
+from time import monotonic
 from typing import Any
 
+from web_readiness_analyzer.errors import ToolExecutionError, ToolTimeoutError
 from web_readiness_analyzer.optimization_presets import (
     get_optimization_preset,
 )
@@ -11,6 +15,50 @@ from web_readiness_analyzer.rules import DEFAULT_PROFILE_KEY
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+TOOL_TIMEOUT_SECONDS = 120
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class ToolCommand:
+    name: str
+    arguments: list[str]
+
+
+def _run_tool(command: ToolCommand) -> None:
+    started_at = monotonic()
+    try:
+        result = subprocess.run(
+            command.arguments,
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=TOOL_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        logger.warning(
+            "tool_timeout tool=%s timeout_seconds=%s",
+            command.name,
+            TOOL_TIMEOUT_SECONDS,
+        )
+        raise ToolTimeoutError(
+            f"{command.name} exceeded the {TOOL_TIMEOUT_SECONDS}-second limit"
+        ) from error
+
+    duration_seconds = monotonic() - started_at
+    logger.info(
+        "tool_complete tool=%s exit_code=%s duration_seconds=%.3f",
+        command.name,
+        result.returncode,
+        duration_seconds,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise ToolExecutionError(
+            f"{command.name} failed with exit code {result.returncode}: "
+            f"{detail}"
+        )
 
 
 def read_json(report_path: Path) -> dict[str, Any]:
@@ -18,23 +66,17 @@ def read_json(report_path: Path) -> dict[str, Any]:
 
 
 def _run_node_adapter(adapter: str, glb_path: Path, report_path: Path) -> None:
-    result = subprocess.run(
-        [
-            "node",
-            str(PROJECT_ROOT / "tools" / adapter),
-            str(glb_path),
-            str(report_path),
-        ],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(
-            f"{adapter} failed with exit code {result.returncode}: {detail}"
+    _run_tool(
+        ToolCommand(
+            name=adapter,
+            arguments=[
+                "node",
+                str(PROJECT_ROOT / "tools" / adapter),
+                str(glb_path),
+                str(report_path),
+            ],
         )
+    )
 
 
 def run_validator(glb_path: Path, report_path: Path) -> None:
@@ -62,22 +104,23 @@ def run_optimizer(
     preset = get_optimization_preset(profile_key)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     npx_executable = "npx.cmd" if os.name == "nt" else "npx"
-    subprocess.run(
-        [
-            npx_executable,
-            "gltf-transform",
-            "optimize",
-            str(input_path),
-            str(output_path),
-            "--texture-size",
-            str(preset.texture_size),
-            "--texture-compress",
-            preset.texture_compress,
-            "--compress",
-            preset.geometry_compress,
-            "--meshopt-level",
-            preset.meshopt_level,
-        ],
-        cwd=PROJECT_ROOT,
-        check=True,
+    _run_tool(
+        ToolCommand(
+            name="gltf-transform optimize",
+            arguments=[
+                npx_executable,
+                "gltf-transform",
+                "optimize",
+                str(input_path),
+                str(output_path),
+                "--texture-size",
+                str(preset.texture_size),
+                "--texture-compress",
+                preset.texture_compress,
+                "--compress",
+                preset.geometry_compress,
+                "--meshopt-level",
+                preset.meshopt_level,
+            ],
+        )
     )

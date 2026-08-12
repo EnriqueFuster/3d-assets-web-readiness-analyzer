@@ -1,4 +1,5 @@
 from pathlib import Path
+from struct import unpack
 
 from web_readiness_analyzer.comparison import compare_reports
 from web_readiness_analyzer.models import AssetReport, ComparisonReport
@@ -23,6 +24,23 @@ def validate_glb_path(glb_path: Path) -> None:
         raise ValueError(f"GLB path is not a file: {glb_path}")
     if glb_path.suffix.lower() != ".glb":
         raise ValueError(f"Expected a .glb file: {glb_path}")
+
+    file_size = glb_path.stat().st_size
+    if file_size < 12:
+        raise ValueError(f"Invalid GLB header: {glb_path}")
+
+    with glb_path.open("rb") as glb_file:
+        magic, version, declared_length = unpack("<4sII", glb_file.read(12))
+
+    if magic != b"glTF":
+        raise ValueError(f"Invalid GLB magic bytes: {glb_path}")
+    if version != 2:
+        raise ValueError(f"Unsupported GLB version {version}: {glb_path}")
+    if declared_length != file_size:
+        raise ValueError(
+            "GLB declared length does not match file size: "
+            f"{glb_path}"
+        )
 
 
 def analyze_glb(
